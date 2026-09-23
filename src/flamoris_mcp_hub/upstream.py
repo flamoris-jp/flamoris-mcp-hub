@@ -6,9 +6,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import anyio
-import httpx2
 from mcp import ClientSession
-from mcp.client.streamable_http import streamable_http_client
+from mcp.client.streamable_http import create_mcp_http_client, streamable_http_client
 from mcp.types import CallToolResult
 
 from .config import Catalog, UpstreamConfig
@@ -16,129 +15,177 @@ from .config import Catalog, UpstreamConfig
 logger = logging.getLogger(__name__)
 
 
+async def _close_stack(stack: contextlib.AsyncExitStack) -> None:
+    # A broken transport may also fail during cleanup. Do not let its cleanup
+    # exception terminate the task group and take the entire Hub down.
+    with anyio.CancelScope(shield=True):
+        try:
+            await stack.aclose()
+        except Exception as exc:
+            logger.warning("Upstream cleanup failed (%s)", type(exc).__name__)
+
+
 @dataclass
+class _Request:
+    name: str
+    arguments: dict[str, Any]
+    reply: anyio.Event = field(default_factory=anyio.Event)
+    result: CallToolResult | None = None
+    error: Exception | None = None
+
+
 class LazyConnection:
-    config: UpstreamConfig
-    _stack: contextlib.AsyncExitStack | None = None
-    _session: ClientSession | None = None
-    _known_tools: set[str] = field(default_factory=set)
-    _last_error: str | None = None
-    _lock: anyio.Lock = field(default_factory=anyio.Lock)
+    """One owner task enters and exits all long-lived upstream contexts."""
 
-    @property
-    def connected(self) -> bool:
-        return self._session is not None
+    def __init__(self, config: UpstreamConfig) -> None:
+        self.config = config
+        self.connected = False
+        self.last_error: str | None = None
+        self.catalog_mismatch: str | None = None
+        self._send, self._receive = anyio.create_memory_object_stream[_Request](16)
+        self._started = False
+        self._start_lock = anyio.Lock()
 
-    @property
-    def last_error(self) -> str | None:
-        return self._last_error
+    async def call_tool(
+        self, task_group: anyio.abc.TaskGroup, name: str, arguments: dict[str, Any]
+    ) -> CallToolResult:
+        async with self._start_lock:
+            if not self._started:
+                task_group.start_soon(self._owner)
+                self._started = True
+        request = _Request(name, arguments)
+        await self._send.send(request)
+        await request.reply.wait()
+        if request.error is not None:
+            raise request.error
+        assert request.result is not None
+        return request.result
 
     async def close(self) -> None:
-        stack, self._stack = self._stack, None
-        self._session = None
-        self._known_tools.clear()
-        if stack is not None:
-            await stack.aclose()
+        await self._send.aclose()
 
-    async def _connect(self) -> ClientSession:
-        stack = contextlib.AsyncExitStack()
+    def _check_catalog(self, listed: Any) -> None:
         try:
-            client = await stack.enter_async_context(
-                httpx2.AsyncClient(headers=self.config.headers())
-            )
-            read_stream, write_stream = await stack.enter_async_context(
-                streamable_http_client(str(self.config.url), http_client=client)
-            )
-            session = await stack.enter_async_context(ClientSession(read_stream, write_stream))
-            await session.initialize()
-            listed = await session.list_tools()
-        except Exception:
-            await stack.aclose()
-            raise
-
-        old_stack = self._stack
-        self._stack = stack
-        self._session = session
-        self._known_tools = {tool.name for tool in listed.tools}
-        self._last_error = None
-
-        if old_stack is not None:
-            await old_stack.aclose()
-
-        logger.info("Connected upstream %s at %s", self.config.id, self.config.url)
-        return session
-
-    async def _ensure_connected_locked(self, required_tool: str) -> ClientSession:
-        if self._session is not None:
-            try:
-                # tools/list is a read-only liveness probe. Never probe by replaying
-                # the actual tool call because some upstream tools are non-idempotent.
-                listed = await self._session.list_tools()
-                self._known_tools = {tool.name for tool in listed.tools}
-            except Exception as exc:
-                logger.info("Upstream %s connection is stale: %s", self.config.id, exc)
-                await self.close()
-
-        if self._session is None:
-            try:
-                await self._connect()
-            except Exception as exc:
-                self._last_error = str(exc)
-                raise ConnectionError(
-                    f"upstream {self.config.id!r} is unavailable: {exc}"
-                ) from exc
-
-        if required_tool not in self._known_tools:
+            upstream = {tool.name: tool for tool in listed.tools}
+        except (AttributeError, TypeError) as exc:
             raise LookupError(
-                f"upstream {self.config.id!r} does not expose configured tool "
-                f"{required_tool!r}"
-            )
+                f"catalog mismatch: {self.config.id} returned invalid tools/list"
+            ) from exc
+        for configured in self.config.tools:
+            actual = upstream.get(configured.name)
+            if actual is None:
+                raise LookupError(
+                    f"catalog mismatch: {self.config.id}.{configured.name} is missing"
+                )
+            if configured.input_schema != actual.input_schema:
+                raise LookupError(
+                    f"catalog mismatch: {self.config.id}.{configured.name} input schema changed"
+                )
+        self.catalog_mismatch = None
 
-        assert self._session is not None
-        return self._session
-
-    async def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> CallToolResult:
-        async with self._lock:
-            session = await self._ensure_connected_locked(tool_name)
-            try:
-                # Exactly one tools/call attempt. If the connection fails after the
-                # upstream may have accepted the request, do not replay automatically.
-                return await session.call_tool(tool_name, arguments)
-            except Exception as exc:
-                self._last_error = str(exc)
-                await self.close()
-                raise ConnectionError(
-                    f"call to upstream {self.config.id!r} failed; request was not retried: {exc}"
-                ) from exc
+    async def _owner(self) -> None:
+        # Every context in this stack is entered and closed in this one task.
+        stack = contextlib.AsyncExitStack()
+        session: ClientSession | None = None
+        try:
+            async with self._receive:
+                async for request in self._receive:
+                    try:
+                        if session is not None:
+                            try:
+                                listed = await session.list_tools()
+                            except Exception:
+                                self.connected = False
+                                await _close_stack(stack)
+                                stack = contextlib.AsyncExitStack()
+                                session = None
+                        if session is None:
+                            try:
+                                client = await stack.enter_async_context(
+                                    create_mcp_http_client(headers=self.config.headers())
+                                )
+                                streams = await stack.enter_async_context(
+                                    streamable_http_client(str(self.config.url), http_client=client)
+                                )
+                                session = await stack.enter_async_context(ClientSession(*streams))
+                                await session.initialize()
+                                listed = await session.list_tools()
+                                self.connected = True
+                                logger.info("Connected upstream %s", self.config.id)
+                            except Exception:
+                                self.connected = False
+                                await _close_stack(stack)
+                                stack = contextlib.AsyncExitStack()
+                                session = None
+                                raise ConnectionError(
+                                    f"upstream {self.config.id!r} is unavailable"
+                                ) from None
+                        try:
+                            self._check_catalog(listed)
+                        except LookupError as exc:
+                            self.catalog_mismatch = str(exc)
+                            raise
+                        # Never replay a call whose outcome may be ambiguous.
+                        try:
+                            request.result = await session.call_tool(
+                                request.name, request.arguments
+                            )
+                            if not isinstance(request.result, CallToolResult):
+                                raise TypeError(
+                                    "upstream returned an unsupported tools/call result"
+                                )
+                        except Exception:
+                            self.connected = False
+                            await _close_stack(stack)
+                            stack = contextlib.AsyncExitStack()
+                            session = None
+                            raise ConnectionError(
+                                f"upstream {self.config.id!r} call failed; not retried"
+                            ) from None
+                        self.last_error = None
+                    except (ConnectionError, LookupError, ValueError) as exc:
+                        self.last_error = str(exc)
+                        request.error = exc
+                    finally:
+                        request.reply.set()
+        finally:
+            self.connected = False
+            await _close_stack(stack)
 
 
 class UpstreamRegistry:
     def __init__(self, catalog: Catalog) -> None:
         self.catalog = catalog
-        self._connections = {
-            config.id: LazyConnection(config)
-            for config in catalog.configs.values()
-        }
+        self._connections = {c.id: LazyConnection(c) for c in catalog.configs.values()}
+        self._group: anyio.abc.TaskGroup | None = None
+
+    @contextlib.asynccontextmanager
+    async def run(self):
+        async with anyio.create_task_group() as group:
+            self._group = group
+            try:
+                yield self
+            finally:
+                for connection in self._connections.values():
+                    await connection.close()
+                self._group = None
 
     def status(self) -> list[dict[str, object]]:
         return [
             {
-                "id": connection.config.id,
-                "namespace": connection.config.namespace,
-                "url": str(connection.config.url),
-                "configured_tools": len(connection.config.tools),
-                "connected": connection.connected,
-                "last_error": connection.last_error,
+                "id": c.config.id,
+                "namespace": c.config.namespace,
+                "url": str(c.config.url),
+                "configured_tools": len(c.config.tools),
+                "connected": c.connected,
+                "last_error": c.last_error,
+                "catalog_mismatch": c.catalog_mismatch,
             }
-            for connection in self._connections.values()
+            for c in self._connections.values()
         ]
 
-    async def call_public_tool(
-        self, public_name: str, arguments: dict[str, Any]
-    ) -> CallToolResult:
+    async def call_public_tool(self, public_name: str, arguments: dict[str, Any]) -> CallToolResult:
+        if self._group is None:
+            raise RuntimeError("Hub registry is not running")
         config, tool = self.catalog.tools[public_name]
-        return await self._connections[config.id].call_tool(tool.name, arguments)
-
-    async def close(self) -> None:
-        for connection in self._connections.values():
-            await connection.close()
+        return await self._connections[config.id].call_tool(self._group, tool.name, arguments)
