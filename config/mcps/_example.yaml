@@ -1,0 +1,12 @@
+# Copy this file and rename it to <mcp-id>.yaml.
+# One file describes one upstream MCP server.
+id: example
+namespace: example
+enabled: false
+transport: streamable-http
+url: https://example.invalid/mcp
+
+# The secret itself must live in .env.
+api_key_env: EXAMPLE_MCP_API_KEY
+api_key_header: Authorization
+api_key_prefix: "Bearer "
