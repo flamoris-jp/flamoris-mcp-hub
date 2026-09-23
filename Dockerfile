@@ -15,4 +15,4 @@ USER flamoris
 
 EXPOSE 8765
 
-CMD ["flamoris-mcp-hub", "--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8765", "--mcp-path", "/mcp"]
+CMD ["flamoris-mcp-hub", "--host", "0.0.0.0", "--port", "8765", "--mcp-path", "/mcp"]
