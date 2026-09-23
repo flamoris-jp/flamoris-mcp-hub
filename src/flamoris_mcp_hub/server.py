@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -10,6 +11,7 @@ import jsonschema
 import uvicorn
 from jsonschema import ValidationError
 from mcp.server import Server, ServerRequestContext
+from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import (
     CallToolRequestParams,
     CallToolResult,
@@ -38,10 +40,8 @@ HUB_STATUS_TOOL = Tool(
 @asynccontextmanager
 async def lifespan(_server):
     _catalog, registry = start_registry()
-    try:
+    async with registry.run():
         yield registry
-    finally:
-        await registry.close()
 
 
 async def on_list_tools(
@@ -95,9 +95,7 @@ async def on_call_tool(
     try:
         jsonschema.validate(instance=arguments, schema=tool.input_schema)
     except ValidationError as exc:
-        return error_result(
-            f"Invalid arguments for {params.name}: {exc.message}"
-        )
+        return error_result(f"Invalid arguments for {params.name}: {exc.message}")
 
     try:
         return await registry.call_public_tool(params.name, arguments)
@@ -118,6 +116,21 @@ server = Server(
 app = server.streamable_http_app(streamable_http_path="/mcp")
 
 
+def transport_security() -> TransportSecuritySettings:
+    # An external reverse proxy Host must be listed explicitly; never allow '*'.
+    hosts = ["127.0.0.1:*", "localhost:*", "[::1]:*"]
+    origins = ["http://127.0.0.1:*", "http://localhost:*", "http://[::1]:*"]
+    hosts.extend(
+        x.strip() for x in os.getenv("FLAMORIS_MCP_HUB_ALLOWED_HOSTS", "").split(",") if x.strip()
+    )
+    origins.extend(
+        x.strip() for x in os.getenv("FLAMORIS_MCP_HUB_ALLOWED_ORIGINS", "").split(",") if x.strip()
+    )
+    if "*" in hosts or "*" in origins:
+        raise ValueError("wildcard Host/Origin is not allowed")
+    return TransportSecuritySettings(allowed_hosts=hosts, allowed_origins=origins)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="FLAMORIS MCP Hub")
     parser.add_argument("--host", default="127.0.0.1")
@@ -131,6 +144,8 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO)
     runtime_app = server.streamable_http_app(
         streamable_http_path=args.mcp_path,
+        host=args.host,
+        transport_security=transport_security(),
     )
     uvicorn.run(runtime_app, host=args.host, port=args.port)
 
