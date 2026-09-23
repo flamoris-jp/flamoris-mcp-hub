@@ -112,9 +112,6 @@ server = Server(
     on_call_tool=on_call_tool,
 )
 
-# Conventional ASGI entry point for tests and external ASGI runners.
-app = server.streamable_http_app(streamable_http_path="/mcp")
-
 
 def transport_security() -> TransportSecuritySettings:
     # An external reverse proxy Host must be listed explicitly; never allow '*'.
@@ -129,6 +126,14 @@ def transport_security() -> TransportSecuritySettings:
     if "*" in hosts or "*" in origins:
         raise ValueError("wildcard Host/Origin is not allowed")
     return TransportSecuritySettings(allowed_hosts=hosts, allowed_origins=origins)
+
+
+# Conventional ASGI entry point for tests and external ASGI runners.
+app = server.streamable_http_app(
+    streamable_http_path="/mcp",
+    host="0.0.0.0",
+    transport_security=transport_security(),
+)
 
 
 def parse_args() -> argparse.Namespace:
