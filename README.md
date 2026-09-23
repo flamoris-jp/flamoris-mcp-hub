@@ -43,6 +43,78 @@ kachinco.timeline.get
 
 The exact mapping and collision policy will be documented alongside the implementation.
 
+
+## Runtime and deployment
+
+FLAMORIS MCP Hub is a Python service intended to run in Docker.
+
+The default container exposes one Streamable HTTP MCP endpoint on port `8765` at `/mcp`.
+
+```sh
+cp .env.example .env
+docker compose up -d --build
+```
+
+The Compose service uses `restart: unless-stopped`.
+
+## Upstream MCP configuration
+
+Upstream MCP servers are configured as **one YAML file per MCP** under:
+
+```text
+config/mcps/
+```
+
+Example:
+
+```yaml
+id: generation
+namespace: generation
+enabled: true
+transport: streamable-http
+url: https://lime.flamoris.net/generation-mcp/mcp
+api_key_env: GENERATION_MCP_API_KEY
+api_key_header: Authorization
+api_key_prefix: "Bearer "
+```
+
+Secrets are never stored in the YAML file. Put the referenced value in `.env`:
+
+```dotenv
+GENERATION_MCP_API_KEY=replace-with-your-secret
+```
+
+On Hub startup, every enabled `*.yaml` file is loaded, validated, and connected.
+Files beginning with `_` are ignored, so `config/mcps/_example.yaml` can remain as a template.
+
+Adding an MCP is intentionally simple:
+
+1. create `config/mcps/<mcp-id>.yaml`;
+2. add any referenced secret to `.env`;
+3. restart the Hub with `docker compose restart mcp-hub`.
+
+The Hub reconnects from configuration on process restart. Live configuration reload is intentionally out of scope for the initial foundation.
+
+Each upstream receives a stable namespace. An upstream tool such as `jobs.submit` under namespace `generation` is represented internally as:
+
+```text
+generation.jobs.submit
+```
+
+Duplicate upstream IDs and namespaces are rejected explicitly.
+
+An unavailable upstream is isolated from the others. The Hub records the connection error and continues starting the remaining configured MCP servers.
+
+The current foundation exposes `hub.upstreams.list` for connection diagnostics. Full forwarding of discovered namespaced tools through the Hub MCP surface is the next implementation step; upstream discovery and connection lifecycle are already established by this scaffold.
+
+### Credential handling
+
+`.env` is ignored by Git.
+
+Configuration files contain only the **environment variable name** holding a secret, never the secret itself. The Hub constructs the configured authentication header at runtime.
+
+Do not commit API keys, access tokens, tunnel credentials, or private keys.
+
 ## Philosophy
 
 FLAMORIS is open-source software for creative work and AI-native production.
