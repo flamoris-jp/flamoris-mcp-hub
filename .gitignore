@@ -1,0 +1,38 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Editor / OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Build / test output
+artifacts/
+TestResults/
+coverage/
+dist/
+build/
+tmp/
+temp/
+
+# Common language/runtime caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+node_modules/
+**/bin/
+**/obj/
+
+# User-specific files
+*.user
+*.suo
