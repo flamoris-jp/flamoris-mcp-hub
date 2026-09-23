@@ -1,0 +1,8 @@
+id: generation
+namespace: generation
+enabled: true
+transport: streamable-http
+url: https://lime.flamoris.net/generation-mcp/mcp
+api_key_env: GENERATION_MCP_API_KEY
+api_key_header: Authorization
+api_key_prefix: "Bearer "
