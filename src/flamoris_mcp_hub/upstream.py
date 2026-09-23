@@ -68,48 +68,48 @@ class LazyConnection:
         logger.info("Connected upstream %s at %s", self.config.id, self.config.url)
         return session
 
-    async def ensure_connected(self, required_tool: str) -> ClientSession:
-        async with self._lock:
-            if self._session is not None:
-                try:
-                    # tools/list is a read-only liveness probe. Never probe by replaying
-                    # the actual tool call because some upstream tools are non-idempotent.
-                    listed = await self._session.list_tools()
-                    self._known_tools = {tool.name for tool in listed.tools}
-                except Exception as exc:
-                    logger.info("Upstream %s connection is stale: %s", self.config.id, exc)
-                    await self.close()
+    async def _ensure_connected_locked(self, required_tool: str) -> ClientSession:
+        if self._session is not None:
+            try:
+                # tools/list is a read-only liveness probe. Never probe by replaying
+                # the actual tool call because some upstream tools are non-idempotent.
+                listed = await self._session.list_tools()
+                self._known_tools = {tool.name for tool in listed.tools}
+            except Exception as exc:
+                logger.info("Upstream %s connection is stale: %s", self.config.id, exc)
+                await self.close()
 
-            if self._session is None:
-                try:
-                    await self._connect()
-                except Exception as exc:
-                    self._last_error = str(exc)
-                    raise ConnectionError(
-                        f"upstream {self.config.id!r} is unavailable: {exc}"
-                    ) from exc
+        if self._session is None:
+            try:
+                await self._connect()
+            except Exception as exc:
+                self._last_error = str(exc)
+                raise ConnectionError(
+                    f"upstream {self.config.id!r} is unavailable: {exc}"
+                ) from exc
 
-            if required_tool not in self._known_tools:
-                raise LookupError(
-                    f"upstream {self.config.id!r} does not expose configured tool "
-                    f"{required_tool!r}"
-                )
+        if required_tool not in self._known_tools:
+            raise LookupError(
+                f"upstream {self.config.id!r} does not expose configured tool "
+                f"{required_tool!r}"
+            )
 
-            assert self._session is not None
-            return self._session
+        assert self._session is not None
+        return self._session
 
     async def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> CallToolResult:
-        session = await self.ensure_connected(tool_name)
-        try:
-            # Exactly one tools/call attempt. If the connection fails after the
-            # upstream may have accepted the request, do not replay automatically.
-            return await session.call_tool(tool_name, arguments)
-        except Exception as exc:
-            self._last_error = str(exc)
-            await self.close()
-            raise ConnectionError(
-                f"call to upstream {self.config.id!r} failed; request was not retried: {exc}"
-            ) from exc
+        async with self._lock:
+            session = await self._ensure_connected_locked(tool_name)
+            try:
+                # Exactly one tools/call attempt. If the connection fails after the
+                # upstream may have accepted the request, do not replay automatically.
+                return await session.call_tool(tool_name, arguments)
+            except Exception as exc:
+                self._last_error = str(exc)
+                await self.close()
+                raise ConnectionError(
+                    f"call to upstream {self.config.id!r} failed; request was not retried: {exc}"
+                ) from exc
 
 
 class UpstreamRegistry:
