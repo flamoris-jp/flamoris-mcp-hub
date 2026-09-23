@@ -11,8 +11,11 @@ license = { file = "LICENSE" }
 requires-python = ">=3.11"
 dependencies = [
   "mcp>=2.2,<3",
-  "pydantic>=2.11,<3",
+  "httpx2>=2.5,<3",
+  "pydantic>=2.12,<3",
   "pyyaml>=6.0,<7",
+  "jsonschema>=4.20,<5",
+  "uvicorn>=0.31,<1",
 ]
 
 [project.optional-dependencies]
