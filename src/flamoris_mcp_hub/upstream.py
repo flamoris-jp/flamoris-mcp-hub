@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import contextlib
 import logging
 from dataclasses import dataclass
 
-import httpx2
-from mcp import ClientSession
-from mcp.client.streamable_http import streamable_http_client
+from mcp import ClientSessionGroup
+from mcp.client.session_group import StreamableHttpParameters
 
 from .config import UpstreamConfig
 
@@ -16,13 +14,12 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ConnectedUpstream:
     config: UpstreamConfig
-    session: ClientSession
+    group: ClientSessionGroup
     tools: tuple[str, ...]
 
 
 class UpstreamRegistry:
     def __init__(self) -> None:
-        self._stack = contextlib.AsyncExitStack()
         self._connected: dict[str, ConnectedUpstream] = {}
         self._errors: dict[str, str] = {}
 
@@ -35,11 +32,12 @@ class UpstreamRegistry:
         return dict(self._errors)
 
     async def __aenter__(self) -> "UpstreamRegistry":
-        await self._stack.__aenter__()
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
-        await self._stack.__aexit__(exc_type, exc, tb)
+        for item in reversed(tuple(self._connected.values())):
+            await item.group.__aexit__(exc_type, exc, tb)
+        self._connected.clear()
 
     async def connect_all(self, configs: list[UpstreamConfig]) -> None:
         for config in configs:
@@ -50,25 +48,28 @@ class UpstreamRegistry:
                 self._errors[config.id] = str(exc)
 
     async def _connect(self, config: UpstreamConfig) -> None:
-        headers = config.headers()
+        namespace = config.namespace
 
-        http_client = await self._stack.enter_async_context(
-            httpx2.AsyncClient(headers=headers)
-        )
-        read_stream, write_stream = await self._stack.enter_async_context(
-            streamable_http_client(str(config.url), http_client=http_client)
-        )
-        session = await self._stack.enter_async_context(
-            ClientSession(read_stream, write_stream)
-        )
-        await session.initialize()
+        def namespaced(component_name: str, _server_info) -> str:
+            return f"{namespace}.{component_name}"
 
-        tool_result = await session.list_tools()
-        tool_names = tuple(tool.name for tool in tool_result.tools)
+        group = ClientSessionGroup(component_name_hook=namespaced)
+        await group.__aenter__()
+        try:
+            await group.connect_to_server(
+                StreamableHttpParameters(
+                    url=str(config.url),
+                    headers=config.headers(),
+                )
+            )
+        except Exception:
+            await group.__aexit__(None, None, None)
+            raise
 
+        tool_names = tuple(sorted(group.tools))
         self._connected[config.id] = ConnectedUpstream(
             config=config,
-            session=session,
+            group=group,
             tools=tool_names,
         )
         self._errors.pop(config.id, None)
