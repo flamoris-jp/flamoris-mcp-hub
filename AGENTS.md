@@ -16,9 +16,11 @@ AI agents and human contributors should treat the Hub as a small MCP aggregation
    - The Hub must not create shadow copies of upstream state.
    - Do not introduce a second `EditorSession`, job authority, media authority, or similar domain authority here.
 
-3. **Use explicit namespacing**
+3. **Use explicit namespacing and static API catalogs**
    - Exposed tools should use a stable namespace identifying the owning upstream MCP server.
    - Example: `generation.jobs.submit`.
+   - Each MCP YAML file declares the API/tool surface that the Hub advertises even while the upstream is offline.
+   - Tool schemas in YAML are part of the Hub's public contract and must match the owning upstream MCP implementation.
    - Namespace collisions must fail explicitly rather than silently overriding another tool.
 
 4. **Preserve MCP semantics**
@@ -26,8 +28,11 @@ AI agents and human contributors should treat the Hub as a small MCP aggregation
    - Keep errors attributable to the correct upstream server.
    - Do not invent success when an upstream request failed or became unreachable.
 
-5. **Connection lifecycle is infrastructure**
-   - Upstream connect, disconnect, reconnect, discovery refresh, shutdown, cancellation, and timeout behavior must be explicit and testable.
+5. **Connection lifecycle is lazy**
+   - Hub startup loads configuration and the static API catalog only. It must not require upstream MCP servers to be running.
+   - Do not add eager startup connection or discovery as a hidden prerequisite.
+   - On tool invocation, reuse a healthy session when possible; if the session is stale or absent, connect before forwarding the call.
+   - Never automatically replay a tool call after an ambiguous transport failure. Some tools are non-idempotent.
    - One unhealthy upstream should not corrupt Hub state or silently affect unrelated upstreams.
 
 6. **Security and privacy are part of architecture**
