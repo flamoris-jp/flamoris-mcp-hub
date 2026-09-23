@@ -14,6 +14,7 @@ dependencies = [
   "httpx2>=2.5,<3",
   "pydantic>=2.12,<3",
   "pyyaml>=6.0,<7",
+  "python-dotenv>=1.0,<2",
   "jsonschema>=4.20,<5",
   "uvicorn>=0.31,<1",
 ]
