@@ -1,5 +1,6 @@
 # Copy this file and rename it to <mcp-id>.yaml.
-# One file describes one upstream MCP server.
+# One file describes one upstream MCP server and the API surface that the Hub
+# should advertise even when that server is offline.
 id: example
 namespace: example
 enabled: false
@@ -10,3 +11,21 @@ url: https://example.invalid/mcp
 api_key_env: EXAMPLE_MCP_API_KEY
 api_key_header: Authorization
 api_key_prefix: "Bearer "
+
+tools:
+  - name: system.health
+    description: Example health API.
+    input_schema:
+      type: object
+      properties: {}
+      additionalProperties: false
+
+  - name: items.get
+    description: Example API with one argument.
+    input_schema:
+      type: object
+      properties:
+        item_id:
+          type: string
+      required: [item_id]
+      additionalProperties: false
