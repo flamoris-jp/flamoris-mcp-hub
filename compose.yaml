@@ -1,0 +1,14 @@
+services:
+  mcp-hub:
+    build:
+      context: .
+    container_name: flamoris-mcp-hub
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      FLAMORIS_MCP_HUB_CONFIG_DIR: /app/config/mcps
+    volumes:
+      - ./config/mcps:/app/config/mcps:ro
+    ports:
+      - "${FLAMORIS_MCP_HUB_PORT:-8765}:8765"
