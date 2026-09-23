@@ -3,7 +3,7 @@
 Single-entry MCP hub for FLAMORIS, aggregating and routing namespaced tools across multiple MCP servers.
 
 FLAMORIS MCP Hub provides one MCP-facing entry point for independently owned FLAMORIS MCP servers.
-It discovers upstream tools, exposes them under explicit namespaces, and routes tool calls to the correct upstream server without taking ownership of application state.
+It reads a static tool catalog, exposes tools under explicit namespaces, and routes calls to the correct upstream server without taking ownership of application state.
 
 The repository starts intentionally small. The Hub is a transport and aggregation boundary, not a replacement for the domain authority held by each FLAMORIS application or service.
 
@@ -56,6 +56,8 @@ docker compose up -d --build
 ```
 
 Both `config/mcps/` and `.env` are mounted read-only into the container. This is intentional: editing either file and restarting the Hub process is enough for the new configuration to be read.
+
+For an external tunnel or reverse proxy, set `FLAMORIS_MCP_HUB_ALLOWED_HOSTS` in `.env` to its exact incoming Host value (for example `mcp.flamoris.net`). If browser requests include an Origin, explicitly set `FLAMORIS_MCP_HUB_ALLOWED_ORIGINS` to that origin. Host/Origin validation remains enabled. Because Compose passes these listener settings as container environment variables, changing them requires `docker compose up -d --force-recreate mcp-hub`. A changed host port mapping also requires container recreation.
 
 ## Upstream MCP configuration
 
@@ -146,12 +148,14 @@ For each tool call the Hub:
 2. reuses the existing session when it is still usable;
 3. uses a read-only `tools/list` request to detect a stale session;
 4. if no usable session exists, connects to the configured upstream endpoint using the API key resolved from `.env`;
-5. verifies that the real upstream currently exposes the configured tool;
+5. verifies that every configured tool still exists and its input schema matches the upstream catalog;
 6. forwards the tool call exactly once.
 
 If the connection cannot be established, the Hub returns a tool error to the caller. The Hub itself remains running and other MCPs are unaffected.
 
 If transport fails **after the real tool call may have been sent**, the Hub does not automatically replay that call. This avoids accidental duplicate execution of non-idempotent APIs such as generation submission.
+
+Each upstream has a dedicated task that owns its session from connection through shutdown. Calls to one upstream are queued (up to 16 waiting requests) and serialized. The SDK's HTTP defaults are 30 seconds for connect/write/pool and 300 seconds for read. A catalog mismatch stops forwarding and appears in `hub.upstreams.list`; update the YAML from the reviewed upstream contract and restart the Hub. The included Generation YAML reflects the current Generation MCP tool schemas, including nested workflow arguments.
 
 ### Adding an MCP
 
@@ -168,6 +172,8 @@ docker compose restart mcp-hub
 
 After restart, the MCP's configured APIs are visible to clients immediately. The upstream MCP itself does not need to be running until one of those APIs is called.
 
+Changes to the mounted `.env` secrets and YAML are read on Hub process restart. Compose environment values and port mappings require container recreation.
+
 Files beginning with `_` are ignored, so `config/mcps/_example.yaml` can remain as a template.
 
 ### Diagnostics
@@ -178,7 +184,7 @@ The Hub exposes:
 hub.upstreams.list
 ```
 
-This reports configured upstreams, whether a live session currently exists, configured tool counts, and the last connection error when applicable. It never exposes API key values.
+This reports configured upstreams, whether a live session currently exists, configured tool counts, the last connection error, and any catalog mismatch. It never exposes API key values.
 
 ### Credential handling
 
