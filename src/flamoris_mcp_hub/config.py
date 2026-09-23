@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
+from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 
@@ -109,5 +110,12 @@ def config_dir() -> Path:
     return Path(os.environ.get("FLAMORIS_MCP_HUB_CONFIG_DIR", "config/mcps"))
 
 
+def env_file() -> Path:
+    return Path(os.environ.get("FLAMORIS_MCP_HUB_ENV_FILE", ".env"))
+
+
 def load_catalog() -> Catalog:
+    # Read secrets at process startup so a normal container restart picks up
+    # changes from the read-only mounted .env file.
+    load_dotenv(env_file(), override=False)
     return Catalog(load_upstreams(config_dir()))
