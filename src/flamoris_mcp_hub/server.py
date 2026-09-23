@@ -1,19 +1,31 @@
 from __future__ import annotations
 
 import argparse
-import asyncio
 import json
 import logging
-from dataclasses import asdict
+from contextlib import asynccontextmanager
 
-from mcp.server.mcpserver import MCPServer
+from mcp.server import MCPServer
 
 from .runtime import start_registry
 
 logger = logging.getLogger(__name__)
-
-mcp = MCPServer("flamoris-mcp-hub")
 _registry = None
+
+
+@asynccontextmanager
+async def lifespan(_server):
+    global _registry
+    registry = await start_registry()
+    _registry = registry
+    try:
+        yield None
+    finally:
+        _registry = None
+        await registry.__aexit__(None, None, None)
+
+
+mcp = MCPServer("FLAMORIS MCP Hub", version="0.1.0", lifespan=lifespan)
 
 
 @mcp.tool(name="hub.upstreams.list")
@@ -42,7 +54,7 @@ def list_upstreams() -> str:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="FLAMORIS MCP Hub")
     parser.add_argument("--transport", choices=["stdio", "streamable-http"], default="stdio")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
@@ -50,25 +62,16 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-async def _connect_upstreams() -> None:
-    global _registry
-    _registry = await start_registry()
-
-
 def main() -> None:
     args = parse_args()
     logging.basicConfig(level=logging.INFO)
-
-    asyncio.run(_connect_upstreams())
 
     if args.transport == "streamable-http":
         mcp.run(
             transport="streamable-http",
             host=args.host,
             port=args.port,
-            path=args.mcp_path,
-            stateless_http=True,
-            json_response=True,
+            streamable_http_path=args.mcp_path,
         )
     else:
         mcp.run(transport="stdio")
