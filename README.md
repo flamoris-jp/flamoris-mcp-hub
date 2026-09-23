@@ -55,15 +55,20 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-The Compose service uses `restart: unless-stopped`.
+Both `config/mcps/` and `.env` are mounted read-only into the container. This is intentional: editing either file and restarting the Hub process is enough for the new configuration to be read.
 
 ## Upstream MCP configuration
 
-Upstream MCP servers are configured as **one YAML file per MCP** under:
+The Hub uses **one YAML file per MCP** under:
 
 ```text
 config/mcps/
 ```
+
+A file describes both:
+
+1. where the upstream MCP lives; and
+2. which APIs/tools the Hub should advertise for it.
 
 Example:
 
@@ -73,47 +78,113 @@ namespace: generation
 enabled: true
 transport: streamable-http
 url: https://lime.flamoris.net/generation-mcp/mcp
+
 api_key_env: GENERATION_MCP_API_KEY
 api_key_header: Authorization
 api_key_prefix: "Bearer "
+
+tools:
+  - name: jobs.submit
+    description: Submit one generation workflow.
+    input_schema:
+      type: object
+      properties:
+        workflow_id:
+          type: string
+      required: [workflow_id]
+      additionalProperties: false
 ```
 
-Secrets are never stored in the YAML file. Put the referenced value in `.env`:
+The secret itself lives only in `.env`:
 
 ```dotenv
 GENERATION_MCP_API_KEY=replace-with-your-secret
 ```
 
-On Hub startup, every enabled `*.yaml` file is loaded, validated, and connected.
-Files beginning with `_` are ignored, so `config/mcps/_example.yaml` can remain as a template.
+### Startup behavior: recognize, do not connect
 
-Adding an MCP is intentionally simple:
+Hub startup is deliberately **catalog-only**.
 
-1. create `config/mcps/<mcp-id>.yaml`;
-2. add any referenced secret to `.env`;
-3. restart the Hub with `docker compose restart mcp-hub`.
+On process startup the Hub:
 
-The Hub reconnects from configuration on process restart. Live configuration reload is intentionally out of scope for the initial foundation.
+- reloads the mounted `.env`;
+- reads every enabled `config/mcps/*.yaml` file;
+- validates IDs, namespaces, endpoints, and static tool schemas;
+- builds the public namespaced tool catalog.
 
-Each upstream receives a stable namespace. An upstream tool such as `jobs.submit` under namespace `generation` is represented internally as:
+It performs **no upstream MCP network connection** during startup.
+
+Therefore the Hub can start normally when Generation MCP, Cutwork, Kachinco, or every upstream MCP is offline.
+
+A configured tool such as:
+
+```text
+jobs.submit
+```
+
+under namespace:
+
+```text
+generation
+```
+
+is advertised to clients as:
 
 ```text
 generation.jobs.submit
 ```
 
-Duplicate upstream IDs and namespaces are rejected explicitly.
+The tool remains visible in `tools/list` even while Generation MCP is stopped.
 
-An unavailable upstream is isolated from the others. The Hub records the connection error and continues starting the remaining configured MCP servers.
+### Call-time connection behavior
 
-The current foundation exposes `hub.upstreams.list` for connection diagnostics. Full forwarding of discovered namespaced tools through the Hub MCP surface is the next implementation step; upstream discovery and connection lifecycle are already established by this scaffold.
+An upstream connection is needed only when a client actually invokes one of its tools.
+
+For each tool call the Hub:
+
+1. locates the owning MCP from the static catalog;
+2. reuses the existing session when it is still usable;
+3. uses a read-only `tools/list` request to detect a stale session;
+4. if no usable session exists, connects to the configured upstream endpoint using the API key resolved from `.env`;
+5. verifies that the real upstream currently exposes the configured tool;
+6. forwards the tool call exactly once.
+
+If the connection cannot be established, the Hub returns a tool error to the caller. The Hub itself remains running and other MCPs are unaffected.
+
+If transport fails **after the real tool call may have been sent**, the Hub does not automatically replay that call. This avoids accidental duplicate execution of non-idempotent APIs such as generation submission.
+
+### Adding an MCP
+
+Adding an MCP is intentionally file-based:
+
+1. create `config/mcps/<mcp-id>.yaml`;
+2. register its endpoint and API/tool schemas;
+3. add any referenced API key to `.env`;
+4. restart the Hub:
+
+```sh
+docker compose restart mcp-hub
+```
+
+After restart, the MCP's configured APIs are visible to clients immediately. The upstream MCP itself does not need to be running until one of those APIs is called.
+
+Files beginning with `_` are ignored, so `config/mcps/_example.yaml` can remain as a template.
+
+### Diagnostics
+
+The Hub exposes:
+
+```text
+hub.upstreams.list
+```
+
+This reports configured upstreams, whether a live session currently exists, configured tool counts, and the last connection error when applicable. It never exposes API key values.
 
 ### Credential handling
 
-`.env` is ignored by Git.
+API keys, access tokens, tunnel credentials, and private keys must never be committed.
 
-Configuration files contain only the **environment variable name** holding a secret, never the secret itself. The Hub constructs the configured authentication header at runtime.
-
-Do not commit API keys, access tokens, tunnel credentials, or private keys.
+YAML files contain only the **name of the environment variable** that holds a secret. The actual value lives in the mounted `.env` file and is resolved only when the Hub needs to establish an upstream connection.
 
 ## Philosophy
 
