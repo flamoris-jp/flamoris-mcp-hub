@@ -166,23 +166,27 @@ async def test_unavailable_does_not_stop_other_upstreams(monkeypatch, fake_trans
         assert isinstance(result.content[0], ImageContent)
 
 
-def test_sdk_http_timeouts(monkeypatch):
-    from flamoris_mcp_hub.upstream import _http_client
+def test_sdk_http_timeouts_and_direct_connection(monkeypatch):
+    from flamoris_mcp_hub import upstream
 
-    for name in (
-        "HTTP_PROXY",
-        "HTTPS_PROXY",
-        "ALL_PROXY",
-        "http_proxy",
-        "https_proxy",
-        "all_proxy",
-    ):
-        monkeypatch.delenv(name, raising=False)
-    client = _http_client(headers={"Authorization": "example"})
-    assert client.timeout.connect == 30
-    assert client.timeout.read == 300
-    assert client.timeout.write == 30
-    assert client.timeout.pool == 30
+    captured = {}
+
+    def fake_async_client(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    monkeypatch.setattr(upstream.httpx2, "AsyncClient", fake_async_client)
+
+    client = upstream._http_client(headers={"Authorization": "example"})
+
+    assert client is not None
+    assert captured["headers"] == {"Authorization": "example"}
+    assert captured["trust_env"] is False
+    timeout = captured["timeout"]
+    assert timeout.connect == 30
+    assert timeout.read == 300
+    assert timeout.write == 30
+    assert timeout.pool == 30
 
 
 @pytest.mark.asyncio
