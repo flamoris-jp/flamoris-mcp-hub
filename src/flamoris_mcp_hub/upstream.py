@@ -17,7 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 def _http_client(*, headers: dict[str, str]) -> httpx2.AsyncClient:
-    return httpx2.AsyncClient(\n        headers=headers,\n        timeout=httpx2.Timeout(30.0, read=300.0),\n        trust_env=False,\n    )
+    return httpx2.AsyncClient(
+        headers=headers,
+        timeout=httpx2.Timeout(30.0, read=300.0),
+        trust_env=False,
+    )
 
 
 async def _close_stack(stack: contextlib.AsyncExitStack) -> None:
