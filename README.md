@@ -155,7 +155,7 @@ If the connection cannot be established, the Hub returns a tool error to the cal
 
 If transport fails **after the real tool call may have been sent**, the Hub does not automatically replay that call. This avoids accidental duplicate execution of non-idempotent APIs such as generation submission.
 
-Each upstream has a dedicated task that owns its session from connection through shutdown. Calls to one upstream are queued (up to 16 waiting requests) and serialized. The SDK's HTTP defaults are 30 seconds for connect/write/pool and 300 seconds for read. A catalog mismatch stops forwarding and appears in `hub.upstreams.list`; update the YAML from the reviewed upstream contract and restart the Hub. The included Generation YAML reflects the current Generation MCP tool schemas, including nested workflow arguments.
+Each upstream has a dedicated task that owns its session from connection through shutdown. Calls to one upstream are queued (up to 16 waiting requests) and serialized. Cancelled requests and requests still waiting when shutdown begins are skipped before dispatch; a call already sent to the upstream is not retried. The Hub configures HTTP timeouts of 30 seconds for connect/write/pool and 300 seconds for read. A catalog mismatch stops forwarding and appears in `hub.upstreams.list`; update the YAML from the reviewed upstream contract and restart the Hub. The included Generation YAML reflects the current Generation MCP tool schemas, including nested workflow arguments.
 
 ### Adding an MCP
 
