@@ -70,123 +70,21 @@ tools:
     title: list_workflowsArguments
     type: object
 - name: workflows.build
-  description: Build a validated generation workflow from a template and parameters.
+  description: Build a validated generation workflow from a built-in template or trusted definition.
   input_schema:
-    $defs:
-      Lora:
-        additionalProperties: false
-        properties:
-          name:
-            title: Name
-            type: string
-          strength_model:
-            default: 1
-            maximum: 20
-            minimum: -20
-            title: Strength Model
-            type: number
-          strength_clip:
-            default: 1
-            maximum: 20
-            minimum: -20
-            title: Strength Clip
-            type: number
-        required:
-        - name
-        title: Lora
-        type: object
-      Parameters:
-        additionalProperties: false
-        properties:
-          checkpoint:
-            title: Checkpoint
-            type: string
-          positive_prompt:
-            maxLength: 20000
-            minLength: 1
-            title: Positive Prompt
-            type: string
-          negative_prompt:
-            default: ''
-            maxLength: 20000
-            title: Negative Prompt
-            type: string
-          width:
-            default: 512
-            maximum: 4096
-            minimum: 64
-            multipleOf: 8
-            title: Width
-            type: integer
-          height:
-            default: 512
-            maximum: 4096
-            minimum: 64
-            multipleOf: 8
-            title: Height
-            type: integer
-          seed:
-            default: 0
-            maximum: 18446744073709551615
-            minimum: 0
-            title: Seed
-            type: integer
-          steps:
-            default: 20
-            maximum: 150
-            minimum: 1
-            title: Steps
-            type: integer
-          cfg:
-            default: 7
-            maximum: 100
-            minimum: 0
-            title: Cfg
-            type: number
-          sampler:
-            default: euler
-            maxLength: 80
-            pattern: ^[a-zA-Z0-9_]+$
-            title: Sampler
-            type: string
-          scheduler:
-            default: normal
-            maxLength: 80
-            pattern: ^[a-zA-Z0-9_]+$
-            title: Scheduler
-            type: string
-          denoise:
-            default: 1
-            maximum: 1
-            minimum: 0
-            title: Denoise
-            type: number
-          loras:
-            default: []
-            items:
-              $ref: '#/$defs/Lora'
-            maxItems: 16
-            title: Loras
-            type: array
-        required:
-        - checkpoint
-        - positive_prompt
-        title: Parameters
-        type: object
+    type: object
     properties:
       template:
-        enum:
-        - text-to-image
-        - text-to-image-lora
         title: Template
         type: string
       parameters:
-        $ref: '#/$defs/Parameters'
+        additionalProperties: true
+        title: Parameters
+        type: object
     required:
     - template
     - parameters
     title: build_workflowArguments
-    type: object
 - name: workflows.save
   description: Persist a generation workflow recipe.
   input_schema:
@@ -264,3 +162,4 @@ tools:
     - asset_id
     title: get_assetArguments
     type: object
+
