@@ -42,6 +42,9 @@ class FakeSession:
 
     async def call_tool(self, name, arguments):
         self.state["calls"] += 1
+        if self.state.get("block_calls"):
+            self.state["entered"].set()
+            await self.state["release"].wait()
         if self.state.get("fail_call"):
             raise ConnectionError("ambiguous")
         return CallToolResult(
@@ -81,7 +84,7 @@ def fake_transport(monkeypatch):
         finally:
             assert anyio.get_current_task().id == owner
 
-    monkeypatch.setattr("flamoris_mcp_hub.upstream.create_mcp_http_client", client)
+    monkeypatch.setattr("flamoris_mcp_hub.upstream._http_client", client)
     monkeypatch.setattr("flamoris_mcp_hub.upstream.streamable_http_client", transport)
     monkeypatch.setattr("flamoris_mcp_hub.upstream.ClientSession", lambda *args: session_context())
     return state
@@ -164,7 +167,7 @@ async def test_unavailable_does_not_stop_other_upstreams(monkeypatch, fake_trans
 
 
 def test_sdk_http_timeouts(monkeypatch):
-    from mcp.client.streamable_http import create_mcp_http_client
+    from flamoris_mcp_hub.upstream import _http_client
 
     for name in (
         "HTTP_PROXY",
@@ -175,8 +178,65 @@ def test_sdk_http_timeouts(monkeypatch):
         "all_proxy",
     ):
         monkeypatch.delenv(name, raising=False)
-    client = create_mcp_http_client(headers={"Authorization": "example"})
+    client = _http_client(headers={"Authorization": "example"})
     assert client.timeout.connect == 30
     assert client.timeout.read == 300
     assert client.timeout.write == 30
     assert client.timeout.pool == 30
+
+
+@pytest.mark.asyncio
+async def test_cancelled_queued_call_is_never_dispatched(fake_transport):
+    fake_transport.update(block_calls=True, entered=anyio.Event(), release=anyio.Event())
+    hub = registry()
+    queued = anyio.Event()
+    scopes = []
+
+    async def first():
+        await hub.call_public_tool("sample.jobs.submit", {})
+
+    async def cancelled_second():
+        with anyio.CancelScope() as scope:
+            scopes.append(scope)
+            queued.set()
+            await hub.call_public_tool("sample.jobs.submit", {})
+
+    async with hub.run():
+        async with anyio.create_task_group() as group:
+            group.start_soon(first)
+            await fake_transport["entered"].wait()
+            group.start_soon(cancelled_second)
+            await queued.wait()
+            with anyio.fail_after(2):
+                while hub._connections["sample"]._send.statistics().current_buffer_used == 0:
+                    await anyio.sleep(0)
+            scopes[0].cancel()
+            await anyio.sleep(0)
+            fake_transport["release"].set()
+    assert fake_transport["calls"] == 1
+
+
+@pytest.mark.asyncio
+async def test_shutdown_discards_pending_calls(fake_transport):
+    fake_transport.update(block_calls=True, entered=anyio.Event(), release=anyio.Event())
+    hub = registry()
+    errors = []
+
+    async def call():
+        try:
+            await hub.call_public_tool("sample.jobs.submit", {})
+        except RuntimeError as exc:
+            errors.append(str(exc))
+
+    async with anyio.create_task_group() as callers:
+        async with hub.run():
+            callers.start_soon(call)
+            await fake_transport["entered"].wait()
+            callers.start_soon(call)
+            with anyio.fail_after(2):
+                while hub._connections["sample"]._send.statistics().current_buffer_used == 0:
+                    await anyio.sleep(0)
+            await hub._connections["sample"].close()
+            fake_transport["release"].set()
+    assert fake_transport["calls"] == 1
+    assert errors == ["upstream connection is shutting down"]
