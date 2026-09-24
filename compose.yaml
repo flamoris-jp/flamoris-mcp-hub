@@ -7,6 +7,8 @@ services:
     environment:
       FLAMORIS_MCP_HUB_CONFIG_DIR: /app/config/mcps
       FLAMORIS_MCP_HUB_ENV_FILE: /app/.env
+      FLAMORIS_MCP_HUB_ALLOWED_HOSTS: ${FLAMORIS_MCP_HUB_ALLOWED_HOSTS:-}
+      FLAMORIS_MCP_HUB_ALLOWED_ORIGINS: ${FLAMORIS_MCP_HUB_ALLOWED_ORIGINS:-}
     volumes:
       - ./config/mcps:/app/config/mcps:ro
       - ./.env:/app/.env:ro

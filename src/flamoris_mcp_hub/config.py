@@ -6,6 +6,8 @@ from typing import Any, Literal
 
 import yaml
 from dotenv import load_dotenv
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import SchemaError
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 
@@ -22,6 +24,16 @@ class ToolConfig(BaseModel):
         }
     )
 
+    @model_validator(mode="after")
+    def validate_schema(self) -> ToolConfig:
+        try:
+            Draft202012Validator.check_schema(self.input_schema)
+        except SchemaError as exc:
+            raise ValueError(f"invalid input_schema for {self.name}: {exc.message}") from exc
+        if self.input_schema.get("type") != "object":
+            raise ValueError(f"input_schema for {self.name} must describe an object")
+        return self
+
 
 class UpstreamConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -37,7 +49,7 @@ class UpstreamConfig(BaseModel):
     tools: list[ToolConfig] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def validate_config(self) -> "UpstreamConfig":
+    def validate_config(self) -> UpstreamConfig:
         if self.api_key_env is not None and not self.api_key_env.strip():
             raise ValueError("api_key_env must be a non-empty environment variable name")
 
@@ -71,6 +83,8 @@ class Catalog:
                 public_name = f"{config.namespace}.{tool.name}"
                 if public_name in self.tools:
                     raise ValueError(f"duplicate public tool name: {public_name}")
+                if public_name == "hub.upstreams.list":
+                    raise ValueError("reserved public tool name: hub.upstreams.list")
                 self.tools[public_name] = (config, tool)
 
 

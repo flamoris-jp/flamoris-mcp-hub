@@ -3,143 +3,264 @@ namespace: generation
 enabled: true
 transport: streamable-http
 url: https://lime.flamoris.net/generation-mcp/mcp
-
-# Secret value lives only in .env.
 api_key_env: GENERATION_MCP_API_KEY
 api_key_header: Authorization
-api_key_prefix: "Bearer "
-
-# Static API catalog exposed by the Hub even while this MCP is offline.
+api_key_prefix: 'Bearer '
 tools:
-  - name: system.health
-    description: Check the Generation MCP process and provider availability.
-    input_schema:
-      type: object
-      properties: {}
-      additionalProperties: false
-
-  - name: capabilities.list
-    description: List provider-independent generation capabilities.
-    input_schema:
-      type: object
-      properties: {}
-      additionalProperties: false
-
-  - name: capabilities.get
-    description: Inspect one generation capability.
-    input_schema:
-      type: object
-      properties:
-        capability_id:
+- name: system.health
+  description: Check the Generation MCP process and provider availability.
+  input_schema:
+    properties: {}
+    title: healthArguments
+    type: object
+- name: capabilities.list
+  description: List provider-independent generation capabilities.
+  input_schema:
+    properties: {}
+    title: list_capabilitiesArguments
+    type: object
+- name: capabilities.get
+  description: Inspect one generation capability.
+  input_schema:
+    properties:
+      capability_id:
+        title: Capability Id
+        type: string
+    required:
+    - capability_id
+    title: get_capabilityArguments
+    type: object
+- name: models.list
+  description: List installed generation models, optionally filtered by kind.
+  input_schema:
+    properties:
+      kind:
+        anyOf:
+        - enum:
+          - checkpoint
+          - lora
+          - vae
+          - controlnet
+          - clip
+          - clip_vision
+          - diffusion_model
+          - text_encoder
+          - unet
           type: string
-      required: [capability_id]
-      additionalProperties: false
-
-  - name: models.list
-    description: List installed generation models, optionally filtered by kind.
-    input_schema:
-      type: object
-      properties:
-        kind:
-          type: [string, "null"]
-      additionalProperties: false
-
-  - name: models.get
-    description: Inspect one installed generation model.
-    input_schema:
-      type: object
-      properties:
-        model_id:
-          type: string
-      required: [model_id]
-      additionalProperties: false
-
-  - name: workflows.list
-    description: List generation workflow templates and known workflow IDs.
-    input_schema:
-      type: object
-      properties: {}
-      additionalProperties: false
-
-  - name: workflows.build
-    description: Build a validated generation workflow from a template and parameters.
-    input_schema:
-      type: object
-      properties:
-        template:
-          type: string
-        parameters:
-          type: object
-          additionalProperties: true
-      required: [template, parameters]
-      additionalProperties: false
-
-  - name: workflows.save
-    description: Persist a generation workflow recipe.
-    input_schema:
-      type: object
-      properties:
-        workflow_id:
-          type: string
-      required: [workflow_id]
-      additionalProperties: false
-
-  - name: jobs.submit
-    description: Submit one generation workflow.
-    input_schema:
-      type: object
-      properties:
-        workflow_id:
-          type: string
-      required: [workflow_id]
-      additionalProperties: false
-
-  - name: jobs.status
-    description: Poll the status of a generation job.
-    input_schema:
-      type: object
-      properties:
-        job_id:
-          type: string
-      required: [job_id]
-      additionalProperties: false
-
-  - name: jobs.result
-    description: Get result metadata for a generation job.
-    input_schema:
-      type: object
-      properties:
-        job_id:
-          type: string
-      required: [job_id]
-      additionalProperties: false
-
-  - name: jobs.cancel
-    description: Request cancellation of a generation job.
-    input_schema:
-      type: object
-      properties:
-        job_id:
-          type: string
-      required: [job_id]
-      additionalProperties: false
-
-  - name: assets.list
-    description: List generated asset metadata for a completed job.
-    input_schema:
-      type: object
-      properties:
-        job_id:
-          type: string
-      required: [job_id]
-      additionalProperties: false
-
-  - name: assets.get
-    description: Return one generated asset as MCP-native media content.
-    input_schema:
-      type: object
-      properties:
-        asset_id:
-          type: string
-      required: [asset_id]
-      additionalProperties: false
+        - type: 'null'
+        default: null
+        title: Kind
+    title: list_modelsArguments
+    type: object
+- name: models.get
+  description: Inspect one installed generation model.
+  input_schema:
+    properties:
+      model_id:
+        title: Model Id
+        type: string
+    required:
+    - model_id
+    title: get_modelArguments
+    type: object
+- name: workflows.list
+  description: List generation workflow templates and known workflow IDs.
+  input_schema:
+    properties: {}
+    title: list_workflowsArguments
+    type: object
+- name: workflows.build
+  description: Build a validated generation workflow from a template and parameters.
+  input_schema:
+    $defs:
+      Lora:
+        additionalProperties: false
+        properties:
+          name:
+            title: Name
+            type: string
+          strength_model:
+            default: 1
+            maximum: 20
+            minimum: -20
+            title: Strength Model
+            type: number
+          strength_clip:
+            default: 1
+            maximum: 20
+            minimum: -20
+            title: Strength Clip
+            type: number
+        required:
+        - name
+        title: Lora
+        type: object
+      Parameters:
+        additionalProperties: false
+        properties:
+          checkpoint:
+            title: Checkpoint
+            type: string
+          positive_prompt:
+            maxLength: 20000
+            minLength: 1
+            title: Positive Prompt
+            type: string
+          negative_prompt:
+            default: ''
+            maxLength: 20000
+            title: Negative Prompt
+            type: string
+          width:
+            default: 512
+            maximum: 4096
+            minimum: 64
+            multipleOf: 8
+            title: Width
+            type: integer
+          height:
+            default: 512
+            maximum: 4096
+            minimum: 64
+            multipleOf: 8
+            title: Height
+            type: integer
+          seed:
+            default: 0
+            maximum: 18446744073709551615
+            minimum: 0
+            title: Seed
+            type: integer
+          steps:
+            default: 20
+            maximum: 150
+            minimum: 1
+            title: Steps
+            type: integer
+          cfg:
+            default: 7
+            maximum: 100
+            minimum: 0
+            title: Cfg
+            type: number
+          sampler:
+            default: euler
+            maxLength: 80
+            pattern: ^[a-zA-Z0-9_]+$
+            title: Sampler
+            type: string
+          scheduler:
+            default: normal
+            maxLength: 80
+            pattern: ^[a-zA-Z0-9_]+$
+            title: Scheduler
+            type: string
+          denoise:
+            default: 1
+            maximum: 1
+            minimum: 0
+            title: Denoise
+            type: number
+          loras:
+            default: []
+            items:
+              $ref: '#/$defs/Lora'
+            maxItems: 16
+            title: Loras
+            type: array
+        required:
+        - checkpoint
+        - positive_prompt
+        title: Parameters
+        type: object
+    properties:
+      template:
+        enum:
+        - text-to-image
+        - text-to-image-lora
+        title: Template
+        type: string
+      parameters:
+        $ref: '#/$defs/Parameters'
+    required:
+    - template
+    - parameters
+    title: build_workflowArguments
+    type: object
+- name: workflows.save
+  description: Persist a generation workflow recipe.
+  input_schema:
+    properties:
+      workflow_id:
+        title: Workflow Id
+        type: string
+    required:
+    - workflow_id
+    title: save_workflowArguments
+    type: object
+- name: jobs.submit
+  description: Submit one generation workflow.
+  input_schema:
+    properties:
+      workflow_id:
+        title: Workflow Id
+        type: string
+    required:
+    - workflow_id
+    title: submit_jobArguments
+    type: object
+- name: jobs.status
+  description: Poll the status of a generation job.
+  input_schema:
+    properties:
+      job_id:
+        title: Job Id
+        type: string
+    required:
+    - job_id
+    title: job_statusArguments
+    type: object
+- name: jobs.result
+  description: Get result metadata for a generation job.
+  input_schema:
+    properties:
+      job_id:
+        title: Job Id
+        type: string
+    required:
+    - job_id
+    title: job_resultArguments
+    type: object
+- name: jobs.cancel
+  description: Request cancellation of a generation job.
+  input_schema:
+    properties:
+      job_id:
+        title: Job Id
+        type: string
+    required:
+    - job_id
+    title: cancel_jobArguments
+    type: object
+- name: assets.list
+  description: List generated asset metadata for a completed job.
+  input_schema:
+    properties:
+      job_id:
+        title: Job Id
+        type: string
+    required:
+    - job_id
+    title: list_assetsArguments
+    type: object
+- name: assets.get
+  description: Return one generated asset as MCP-native media content.
+  input_schema:
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+    required:
+    - asset_id
+    title: get_assetArguments
+    type: object
