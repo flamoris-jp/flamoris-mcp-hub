@@ -6,13 +6,18 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import anyio
+import httpx2
 from mcp import ClientSession
-from mcp.client.streamable_http import create_mcp_http_client, streamable_http_client
+from mcp.client.streamable_http import streamable_http_client
 from mcp.types import CallToolResult
 
 from .config import Catalog, UpstreamConfig
 
 logger = logging.getLogger(__name__)
+
+
+def _http_client(*, headers: dict[str, str]) -> httpx2.AsyncClient:
+    return httpx2.AsyncClient(headers=headers, timeout=httpx2.Timeout(30.0, read=300.0))
 
 
 async def _close_stack(stack: contextlib.AsyncExitStack) -> None:
@@ -32,6 +37,7 @@ class _Request:
     reply: anyio.Event = field(default_factory=anyio.Event)
     result: CallToolResult | None = None
     error: Exception | None = None
+    cancelled: bool = False
 
 
 class LazyConnection:
@@ -44,24 +50,36 @@ class LazyConnection:
         self.catalog_mismatch: str | None = None
         self._send, self._receive = anyio.create_memory_object_stream[_Request](16)
         self._started = False
+        self._closing = False
         self._start_lock = anyio.Lock()
 
     async def call_tool(
         self, task_group: anyio.abc.TaskGroup, name: str, arguments: dict[str, Any]
     ) -> CallToolResult:
         async with self._start_lock:
+            if self._closing:
+                raise RuntimeError("upstream connection is shutting down")
             if not self._started:
                 task_group.start_soon(self._owner)
                 self._started = True
         request = _Request(name, arguments)
-        await self._send.send(request)
-        await request.reply.wait()
+        try:
+            await self._send.send(request)
+            await request.reply.wait()
+        except anyio.get_cancelled_exc_class():
+            # The owner checks this immediately before dispatch, without an await
+            # between the check and sending the real tools/call request.
+            request.cancelled = True
+            raise
+        except anyio.ClosedResourceError as exc:
+            raise RuntimeError("upstream connection is shutting down") from exc
         if request.error is not None:
             raise request.error
         assert request.result is not None
         return request.result
 
     async def close(self) -> None:
+        self._closing = True
         await self._send.aclose()
 
     def _check_catalog(self, listed: Any) -> None:
@@ -91,6 +109,10 @@ class LazyConnection:
             async with self._receive:
                 async for request in self._receive:
                     try:
+                        if self._closing:
+                            raise RuntimeError("upstream connection is shutting down")
+                        if request.cancelled:
+                            continue
                         if session is not None:
                             try:
                                 listed = await session.list_tools()
@@ -102,7 +124,7 @@ class LazyConnection:
                         if session is None:
                             try:
                                 client = await stack.enter_async_context(
-                                    create_mcp_http_client(headers=self.config.headers())
+                                    _http_client(headers=self.config.headers())
                                 )
                                 streams = await stack.enter_async_context(
                                     streamable_http_client(str(self.config.url), http_client=client)
@@ -125,6 +147,10 @@ class LazyConnection:
                         except LookupError as exc:
                             self.catalog_mismatch = str(exc)
                             raise
+                        if self._closing:
+                            raise RuntimeError("upstream connection is shutting down")
+                        if request.cancelled:
+                            continue
                         # Never replay a call whose outcome may be ambiguous.
                         try:
                             request.result = await session.call_tool(
@@ -143,7 +169,7 @@ class LazyConnection:
                                 f"upstream {self.config.id!r} call failed; not retried"
                             ) from None
                         self.last_error = None
-                    except (ConnectionError, LookupError, ValueError) as exc:
+                    except (ConnectionError, LookupError, ValueError, RuntimeError) as exc:
                         self.last_error = str(exc)
                         request.error = exc
                     finally:
