@@ -63,11 +63,11 @@ def test_invalid_schema_fails_config_load(tmp_path: Path):
 
 
 def test_explicit_proxy_host_allowlist(monkeypatch):
-    monkeypatch.setenv("FLAMORIS_MCP_HUB_ALLOWED_HOSTS", "mcp.flamoris.net")
+    monkeypatch.setenv("FLAMORIS_MCP_HUB_ALLOWED_HOSTS", "mcp.example.test")
     monkeypatch.setenv("FLAMORIS_MCP_HUB_ALLOWED_ORIGINS", "https://chatgpt.com")
     settings = transport_security()
     assert settings.enable_dns_rebinding_protection
-    assert "mcp.flamoris.net" in settings.allowed_hosts
+    assert "mcp.example.test" in settings.allowed_hosts
     assert "https://chatgpt.com" in settings.allowed_origins
     monkeypatch.setenv("FLAMORIS_MCP_HUB_ALLOWED_HOSTS", "*")
     with pytest.raises(ValueError, match="wildcard"):
