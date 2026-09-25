@@ -6,9 +6,11 @@ namespace: generation
 enabled: true
 transport: streamable-http
 url: https://generation.example.com/mcp
-api_key_env: GENERATION_MCP_API_KEY
-api_key_header: Authorization
-api_key_prefix: 'Bearer '
+# Optional bearer-token authentication. Uncomment only when the upstream
+# deployment requires it, and keep the actual secret in .env.
+# api_key_env: GENERATION_MCP_API_KEY
+# api_key_header: Authorization
+# api_key_prefix: 'Bearer '
 tools:
 - name: system.health
   description: Check the Generation MCP process and provider availability.
