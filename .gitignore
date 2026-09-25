@@ -36,3 +36,7 @@ node_modules/
 # User-specific files
 *.user
 *.suo
+
+# Deployment-specific MCP endpoints
+config/mcps/*.yaml
+!config/mcps/_*.yaml
