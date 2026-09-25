@@ -6,7 +6,7 @@ FLAMORIS MCP Hub exists to provide a small, explicit aggregation and routing bou
 
 ## Before contributing
 
-For small fixes, feel free to open a pull request directly.
+Issues are welcome from everyone. Pull requests are accepted only from repository collaborators. Please open an Issue to propose fixes, features, or documentation changes.
 
 For larger changes, new routing or discovery behavior, namespace changes, transport changes, or changes that affect multiple upstream MCP servers, please open an issue first so the intended boundary can be discussed before implementation.
 
@@ -48,7 +48,7 @@ FLAMORIS MCP Hubは、独立した複数のFLAMORIS MCPサーバーを、小さ�
 
 ## 変更を始める前に
 
-小さな修正は、そのままPull Requestを送っていただいて構いません。
+Issueはどなたでも歓迎します。Pull Requestはリポジトリのcollaboratorのみ受け付けています。修正、機能、ドキュメント変更などの提案はIssueからお願いします。
 
 大きな変更、新しいrouting/discoveryの挙動、namespace変更、transport変更、複数の上流MCPに影響する変更は、実装前にIssueで意図や境界を相談してください。
 
