@@ -85,9 +85,10 @@ enabled: true
 transport: streamable-http
 url: https://generation.example.com/mcp
 
-api_key_env: GENERATION_MCP_API_KEY
-api_key_header: Authorization
-api_key_prefix: "Bearer "
+# Optional when the upstream deployment requires bearer authentication:
+# api_key_env: GENERATION_MCP_API_KEY
+# api_key_header: Authorization
+# api_key_prefix: "Bearer "
 
 tools:
   - name: jobs.submit
@@ -101,7 +102,7 @@ tools:
       additionalProperties: false
 ```
 
-The secret itself lives only in `.env`:
+When an upstream requires a secret, the secret itself lives only in `.env`:
 
 ```dotenv
 GENERATION_MCP_API_KEY=replace-with-your-secret
@@ -194,7 +195,7 @@ This reports configured upstreams, whether a live session currently exists, conf
 
 API keys, access tokens, tunnel credentials, and private keys must never be committed.
 
-YAML files contain only the **name of the environment variable** that holds a secret. The actual value lives in the mounted `.env` file and is resolved only when the Hub needs to establish an upstream connection.
+When authentication is configured, YAML files contain only the **name of the environment variable** that holds a secret. The actual value lives in the mounted `.env` file and is resolved only when the Hub needs to establish an upstream connection. Upstreams that are already protected by an appropriate deployment boundary may omit the API-key fields.
 
 ## Philosophy
 
