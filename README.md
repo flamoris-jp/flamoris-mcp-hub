@@ -63,6 +63,12 @@ Runtime MCP YAML files are deployment configuration and are intentionally ignore
 
 For an external tunnel or reverse proxy, set `FLAMORIS_MCP_HUB_ALLOWED_HOSTS` in `.env` to its exact incoming Host value (for example `mcp.example.com`). If browser requests include an Origin, explicitly set `FLAMORIS_MCP_HUB_ALLOWED_ORIGINS` to that origin. Host/Origin validation remains enabled. Because Compose passes these listener settings as container environment variables, changing them requires `docker compose up -d --force-recreate mcp-hub`. A changed host port mapping also requires container recreation.
 
+### Upgrading an existing deployment
+
+Older checkouts may have `config/mcps/generation.yaml` tracked by Git. Before updating such a checkout, save the deployment-specific YAML outside the repository. The public repository now tracks only underscore-prefixed templates, so Git may remove the previously tracked runtime file during the update.
+
+After updating, copy `config/mcps/_generation.example.yaml` to `config/mcps/generation.yaml`, then restore the endpoint and authentication settings for that deployment. The resulting runtime YAML is intentionally ignored by Git.
+
 ## Upstream MCP configuration
 
 The Hub uses **one YAML file per MCP** under:
