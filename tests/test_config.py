@@ -1,8 +1,36 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from flamoris_mcp_hub.config import Catalog, load_upstreams
+
+
+def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path):
+    template = Path(__file__).parents[1] / "config/mcps/_generation.example.yaml"
+    raw = yaml.safe_load(template.read_text(encoding="utf-8"))
+    schemas = {tool["name"]: tool["input_schema"] for tool in raw["tools"]}
+    assert schemas["workflows.build"] == {
+        "type": "object",
+        "properties": {
+            "template": {"title": "Template", "type": "string"},
+            "parameters": {"additionalProperties": True, "title": "Parameters", "type": "object"},
+        },
+        "required": ["template", "parameters"],
+        "title": "build_workflowArguments",
+    }
+    assert schemas["assets.delete"] == {
+        "properties": {"asset_id": {"title": "Asset Id", "type": "string"}},
+        "required": ["asset_id"],
+        "title": "delete_assetArguments",
+        "type": "object",
+    }
+    assert not list(tmp_path.iterdir())
+    assert load_upstreams(template.parent) == []
+    (tmp_path / "generation.yaml").write_text(template.read_text(encoding="utf-8"))
+    catalog = Catalog(load_upstreams(tmp_path))
+    assert "generation.workflows.build" in catalog.tools
+    assert "generation.assets.delete" in catalog.tools
 
 
 def test_loads_catalog_without_secret_or_network(tmp_path: Path, monkeypatch):

@@ -52,12 +52,22 @@ The default container exposes one Streamable HTTP MCP endpoint on port `8765` at
 
 ```sh
 cp .env.example .env
+cp config/mcps/_generation.example.yaml config/mcps/generation.yaml
+# Edit .env and config/mcps/generation.yaml for your deployment.
 docker compose up -d --build
 ```
 
 Both `config/mcps/` and `.env` are mounted read-only into the container. This is intentional: editing either file and restarting the Hub process is enough for the new configuration to be read.
 
-For an external tunnel or reverse proxy, set `FLAMORIS_MCP_HUB_ALLOWED_HOSTS` in `.env` to its exact incoming Host value (for example `mcp.flamoris.net`). If browser requests include an Origin, explicitly set `FLAMORIS_MCP_HUB_ALLOWED_ORIGINS` to that origin. Host/Origin validation remains enabled. Because Compose passes these listener settings as container environment variables, changing them requires `docker compose up -d --force-recreate mcp-hub`. A changed host port mapping also requires container recreation.
+Runtime MCP YAML files are deployment configuration and are intentionally ignored by Git. Tracked files whose names begin with `_` are templates only; the Hub ignores them. Copy a template to a non-underscore `.yaml` file and set the endpoint for your own environment.
+
+For an external tunnel or reverse proxy, set `FLAMORIS_MCP_HUB_ALLOWED_HOSTS` in `.env` to its exact incoming Host value (for example `mcp.example.com`). If browser requests include an Origin, explicitly set `FLAMORIS_MCP_HUB_ALLOWED_ORIGINS` to that origin. Host/Origin validation remains enabled. Because Compose passes these listener settings as container environment variables, changing them requires `docker compose up -d --force-recreate mcp-hub`. A changed host port mapping also requires container recreation.
+
+### Upgrading an existing deployment
+
+Older checkouts may have `config/mcps/generation.yaml` tracked by Git. Before updating such a checkout, save the deployment-specific YAML outside the repository. The public repository now tracks only underscore-prefixed templates, so Git may remove the previously tracked runtime file during the update.
+
+After updating, copy `config/mcps/_generation.example.yaml` to `config/mcps/generation.yaml`, then restore the endpoint and authentication settings for that deployment. The resulting runtime YAML is intentionally ignored by Git.
 
 ## Upstream MCP configuration
 
@@ -79,11 +89,12 @@ id: generation
 namespace: generation
 enabled: true
 transport: streamable-http
-url: https://lime.flamoris.net/generation-mcp/mcp
+url: https://generation.example.com/mcp
 
-api_key_env: GENERATION_MCP_API_KEY
-api_key_header: Authorization
-api_key_prefix: "Bearer "
+# Optional when the upstream deployment requires bearer authentication:
+# api_key_env: GENERATION_MCP_API_KEY
+# api_key_header: Authorization
+# api_key_prefix: "Bearer "
 
 tools:
   - name: jobs.submit
@@ -97,7 +108,7 @@ tools:
       additionalProperties: false
 ```
 
-The secret itself lives only in `.env`:
+When an upstream requires a secret, the secret itself lives only in `.env`:
 
 ```dotenv
 GENERATION_MCP_API_KEY=replace-with-your-secret
@@ -155,14 +166,14 @@ If the connection cannot be established, the Hub returns a tool error to the cal
 
 If transport fails **after the real tool call may have been sent**, the Hub does not automatically replay that call. This avoids accidental duplicate execution of non-idempotent APIs such as generation submission.
 
-Each upstream has a dedicated task that owns its session from connection through shutdown. Calls to one upstream are queued (up to 16 waiting requests) and serialized. Cancelled requests and requests still waiting when shutdown begins are skipped before dispatch; a call already sent to the upstream is not retried. The Hub configures HTTP timeouts of 30 seconds for connect/write/pool and 300 seconds for read. A catalog mismatch stops forwarding and appears in `hub.upstreams.list`; update the YAML from the reviewed upstream contract and restart the Hub. The included Generation YAML reflects the current Generation MCP tool schemas, including nested workflow arguments.
+Each upstream has a dedicated task that owns its session from connection through shutdown. Calls to one upstream are queued (up to 16 waiting requests) and serialized. Cancelled requests and requests still waiting when shutdown begins are skipped before dispatch; a call already sent to the upstream is not retried. The Hub configures HTTP timeouts of 30 seconds for connect/write/pool and 300 seconds for read. A catalog mismatch stops forwarding and appears in `hub.upstreams.list`; update the YAML from the reviewed upstream contract and restart the Hub. The tracked `config/mcps/_generation.example.yaml` template reflects the current Generation MCP tool schemas, including nested workflow arguments. It is not an enabled deployment target until you copy it to a runtime YAML file.
 
 ### Adding an MCP
 
 Adding an MCP is intentionally file-based:
 
-1. create `config/mcps/<mcp-id>.yaml`;
-2. register its endpoint and API/tool schemas;
+1. copy a tracked template such as `config/mcps/_generation.example.yaml`, or create `config/mcps/<mcp-id>.yaml`;
+2. register the endpoint and API/tool schemas for your deployment;
 3. add any referenced API key to `.env`;
 4. restart the Hub:
 
@@ -174,7 +185,7 @@ After restart, the MCP's configured APIs are visible to clients immediately. The
 
 Changes to the mounted `.env` secrets and YAML are read on Hub process restart. Compose environment values and port mappings require container recreation.
 
-Files beginning with `_` are ignored, so `config/mcps/_example.yaml` can remain as a template.
+Files beginning with `_` are ignored by the Hub, so tracked templates such as `config/mcps/_example.yaml` and `config/mcps/_generation.example.yaml` are safe to keep in the repository. Non-underscore runtime YAML files are ignored by Git so deployment-specific endpoints do not become public defaults.
 
 ### Diagnostics
 
@@ -190,7 +201,7 @@ This reports configured upstreams, whether a live session currently exists, conf
 
 API keys, access tokens, tunnel credentials, and private keys must never be committed.
 
-YAML files contain only the **name of the environment variable** that holds a secret. The actual value lives in the mounted `.env` file and is resolved only when the Hub needs to establish an upstream connection.
+When authentication is configured, YAML files contain only the **name of the environment variable** that holds a secret. The actual value lives in the mounted `.env` file and is resolved only when the Hub needs to establish an upstream connection. Upstreams that are already protected by an appropriate deployment boundary may omit the API-key fields.
 
 ## Philosophy
 

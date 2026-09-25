@@ -1,11 +1,16 @@
+# Generation MCP catalog template.
+# Copy this file to config/mcps/generation.yaml and set the URL for your deployment.
+# Files beginning with "_" are ignored by the Hub.
 id: generation
 namespace: generation
 enabled: true
 transport: streamable-http
-url: https://lime.flamoris.net/generation-mcp/mcp
-api_key_env: GENERATION_MCP_API_KEY
-api_key_header: Authorization
-api_key_prefix: 'Bearer '
+url: https://generation.example.com/mcp
+# Optional bearer-token authentication. Uncomment only when the upstream
+# deployment requires it, and keep the actual secret in .env.
+# api_key_env: GENERATION_MCP_API_KEY
+# api_key_header: Authorization
+# api_key_prefix: 'Bearer '
 tools:
 - name: system.health
   description: Check the Generation MCP process and provider availability.
@@ -162,4 +167,14 @@ tools:
     - asset_id
     title: get_assetArguments
     type: object
-
+- name: assets.delete
+  description: Delete one Hub-managed generated asset (not provider originals).
+  input_schema:
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+    required:
+    - asset_id
+    title: delete_assetArguments
+    type: object
