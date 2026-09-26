@@ -1,0 +1,75 @@
+{
+  "source_repository": "flamoris-net/flamoris-lime-manager",
+  "source_commit": "cd673a9ca05b1f879560122d3fce6c3d42e9f21a",
+  "tools": [
+    {
+      "name": "runtime.list",
+      "description": "List configured runtimes and their current authoritative status.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "title": "runtime_listArguments"
+      }
+    },
+    {
+      "name": "runtime.status",
+      "description": "Inspect one configured runtime by its registry ID.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "runtime_id": {
+            "title": "Runtime Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_id"
+        ],
+        "title": "runtime_statusArguments"
+      }
+    },
+    {
+      "name": "runtime.activate",
+      "description": "Activate one enabled configured runtime through RuntimeManager.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "runtime_id": {
+            "title": "Runtime Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_id"
+        ],
+        "title": "runtime_activateArguments"
+      }
+    },
+    {
+      "name": "runtime.stop",
+      "description": "Stop one configured runtime through RuntimeManager.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "runtime_id": {
+            "title": "Runtime Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_id"
+        ],
+        "title": "runtime_stopArguments"
+      }
+    },
+    {
+      "name": "system.status",
+      "description": "Inspect current ownership, transitions, anomalies, and optional telemetry.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "title": "system_statusArguments"
+      }
+    }
+  ]
+}
