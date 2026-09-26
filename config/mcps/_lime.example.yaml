@@ -1,4 +1,4 @@
-# LIME Manager catalog; exported from the pinned source in tests/fixtures/lime-tools.json.
+# GPU Node Manager catalog for the LIME deployment; fixture provenance is pinned in tests/fixtures/lime-tools.json.
 # Copy to lime.yaml and set your endpoint. The host is relative to the Hub runtime;
 # container loopback is not the host loopback. No upstream Bearer auth is assumed.
 {

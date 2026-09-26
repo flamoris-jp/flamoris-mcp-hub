@@ -221,13 +221,17 @@ Changes to the mounted `.env` secrets and YAML are read on Hub process restart. 
 
 Files beginning with `_` are ignored by the Hub, so tracked templates such as `config/mcps/_example.yaml` and `config/mcps/_generation.example.yaml` are safe to keep in the repository. Non-underscore runtime YAML files are ignored by Git so deployment-specific endpoints do not become public defaults.
 
-### LIME Manager upstream
+### GPU Node Manager upstream (LIME deployment)
 
 Copy `config/mcps/_lime.example.yaml` to a deployment-local `lime.yaml` and set its
-endpoint. The template stays disabled by its underscore prefix. Its five schemas
-were exported from the LIME Manager revision recorded in
-`tests/fixtures/lime-tools.json`; future schema changes must update the catalog
-deliberately. The usual exact schema check runs before forwarding a call.
+endpoint. The namespace remains `lime` as a deployment-facing name, while the
+owning public service is
+[`flamoris-gpu-node-manager`](https://github.com/flamoris-jp/flamoris-gpu-node-manager).
+The template stays disabled by its underscore prefix. Its five-tool surface matches
+the current GPU Node Manager MCP contract. The pinned fixture was originally
+exported from the former LIME Manager revision recorded in
+`tests/fixtures/lime-tools.json`; future schema changes should be reviewed and
+repinned deliberately. The usual exact schema check runs before forwarding a call.
 
 The upstream currently requires no application Bearer token. Protect its
 endpoint at the deployment boundary; do not fabricate credentials. Container
@@ -245,8 +249,8 @@ generation.jobs.submit(...)
 
 The other tools are `lime.runtime.list`, `lime.runtime.status` and
 `lime.runtime.stop`. This sequence is a client decision, not Hub automation.
-LIME Manager alone owns runtime transitions, GPU handoff and readiness. Startup
-remains catalog-only even when LIME Manager is offline; ambiguous activate/stop
+GPU Node Manager alone owns runtime transitions, GPU handoff and readiness. Startup
+remains catalog-only even when the GPU Node Manager upstream is offline; ambiguous activate/stop
 calls are never replayed. Later calls may reconnect through the existing lazy
 session lifecycle. No systemd or runtime-selection logic lives in the Hub.
 
