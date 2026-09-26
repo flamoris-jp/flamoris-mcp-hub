@@ -54,6 +54,7 @@ The default container exposes one Streamable HTTP MCP endpoint on port `8765` at
 cp .env.example .env
 cp config/mcps/_generation.example.yaml config/mcps/generation.yaml
 # Edit .env and config/mcps/generation.yaml for your deployment.
+# Set FLAMORIS_MCP_HUB_CLIENT_TOKEN to a random token (see below).
 docker compose up -d --build
 ```
 
@@ -64,6 +65,33 @@ Runtime MCP YAML files are deployment configuration and are intentionally ignore
 For an external tunnel or reverse proxy, set `FLAMORIS_MCP_HUB_ALLOWED_HOSTS` in `.env` to its exact incoming Host value (for example `mcp.example.com`). If browser requests include an Origin, explicitly set `FLAMORIS_MCP_HUB_ALLOWED_ORIGINS` to that origin. Host/Origin validation remains enabled. Because Compose passes these listener settings as container environment variables, changing them requires `docker compose up -d --force-recreate mcp-hub`. A changed host port mapping also requires container recreation.
 
 ### Upgrading an existing deployment
+
+Hub HTTP clients now require `Authorization: Bearer <client token>` for every
+request, including initialization, GET/SSE and session deletion. Set
+`FLAMORIS_MCP_HUB_CLIENT_TOKEN` in the mounted `.env` before starting/upgrading and
+configure each client to send it. Missing/invalid token configuration stops
+startup. Generate a secret locally with:
+
+```sh
+python -c 'import secrets; print(secrets.token_urlsafe(32))'
+```
+
+The token must be 32-512 Bearer-token characters. Never put it in YAML, URLs,
+source control or logs. Rotate it by changing `.env` and restarting the Hub;
+existing sessions must also send the new token. This is one shared trust group,
+not per-user identity or authorization. Do not share it with untrusted clients.
+
+Compose publishes to `127.0.0.1` by default. An intentional non-loopback mapping
+requires `FLAMORIS_MCP_HUB_BIND` and container recreation. Use TLS and an
+authenticated front door for external access, retain the Hub token check and
+restrict direct access to its port. Host/Origin allowlists are still enforced;
+they do not authenticate clients. A proxy must preserve the Bearer header (or
+inject a trusted token only after authenticating its own clients). If the client
+cannot send a configured Bearer token, use that authenticated proxy boundary.
+
+Hub client tokens are never forwarded as upstream credentials. Optional upstream
+`api_key_env` variables remain separate. Both the CLI and `server:app` ASGI
+entrypoint enforce the same check; there is no unauthenticated HTTP mode.
 
 Older checkouts may have `config/mcps/generation.yaml` tracked by Git. Before updating such a checkout, save the deployment-specific YAML outside the repository. The public repository now tracks only underscore-prefixed templates, so Git may remove the previously tracked runtime file during the update.
 

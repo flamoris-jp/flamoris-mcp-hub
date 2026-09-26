@@ -5,10 +5,12 @@ import json
 import logging
 import os
 from contextlib import asynccontextmanager
+from functools import lru_cache
 from typing import Any
 
 import jsonschema
 import uvicorn
+from dotenv import load_dotenv
 from jsonschema import ValidationError
 from mcp.server import Server, ServerRequestContext
 from mcp.server.transport_security import TransportSecuritySettings
@@ -20,7 +22,10 @@ from mcp.types import (
     TextContent,
     Tool,
 )
+from starlette.types import Receive, Scope, Send
 
+from .auth import BearerAuth, client_token
+from .config import env_file
 from .runtime import start_registry
 from .upstream import UpstreamRegistry
 
@@ -128,12 +133,28 @@ def transport_security() -> TransportSecuritySettings:
     return TransportSecuritySettings(allowed_hosts=hosts, allowed_origins=origins)
 
 
-# Conventional ASGI entry point for tests and external ASGI runners.
-app = server.streamable_http_app(
-    streamable_http_path="/mcp",
-    host="0.0.0.0",
-    transport_security=transport_security(),
-)
+def create_app(*, host: str = "127.0.0.1", mcp_path: str = "/mcp") -> BearerAuth:
+    # Read mounted configuration before constructing either security boundary.
+    load_dotenv(env_file(), override=False)
+    token = client_token()  # Fail closed before starting a registry or listener.
+    return BearerAuth(
+        server.streamable_http_app(
+            streamable_http_path=mcp_path,
+            host=host,
+            transport_security=transport_security(),
+        ),
+        token,
+    )
+
+
+@lru_cache(maxsize=1)
+def _default_app() -> BearerAuth:
+    return create_app()
+
+
+async def app(scope: Scope, receive: Receive, send: Send) -> None:
+    """ASGI entrypoint uses the same mandatory authentication as the CLI."""
+    await _default_app()(scope, receive, send)
 
 
 def parse_args() -> argparse.Namespace:
@@ -147,11 +168,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     logging.basicConfig(level=logging.INFO)
-    runtime_app = server.streamable_http_app(
-        streamable_http_path=args.mcp_path,
-        host=args.host,
-        transport_security=transport_security(),
-    )
+    runtime_app = create_app(host=args.host, mcp_path=args.mcp_path)
     uvicorn.run(runtime_app, host=args.host, port=args.port)
 
 

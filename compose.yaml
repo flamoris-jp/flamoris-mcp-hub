@@ -13,4 +13,4 @@ services:
       - ./config/mcps:/app/config/mcps:ro
       - ./.env:/app/.env:ro
     ports:
-      - "${FLAMORIS_MCP_HUB_PORT:-8765}:8765"
+      - "${FLAMORIS_MCP_HUB_BIND:-127.0.0.1}:${FLAMORIS_MCP_HUB_PORT:-8765}:8765"
