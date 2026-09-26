@@ -1,0 +1,81 @@
+# LIME Manager catalog; exported from the pinned source in tests/fixtures/lime-tools.json.
+# Copy to lime.yaml and set your endpoint. The host is relative to the Hub runtime;
+# container loopback is not the host loopback. No upstream Bearer auth is assumed.
+{
+  "id": "lime",
+  "namespace": "lime",
+  "enabled": true,
+  "transport": "streamable-http",
+  "url": "http://127.0.0.1:8766/mcp",
+  "tools": [
+    {
+      "name": "runtime.list",
+      "description": "List configured runtimes and their current authoritative status.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "title": "runtime_listArguments"
+      }
+    },
+    {
+      "name": "runtime.status",
+      "description": "Inspect one configured runtime by its registry ID.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "runtime_id": {
+            "title": "Runtime Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_id"
+        ],
+        "title": "runtime_statusArguments"
+      }
+    },
+    {
+      "name": "runtime.activate",
+      "description": "Activate one enabled configured runtime through RuntimeManager.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "runtime_id": {
+            "title": "Runtime Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_id"
+        ],
+        "title": "runtime_activateArguments"
+      }
+    },
+    {
+      "name": "runtime.stop",
+      "description": "Stop one configured runtime through RuntimeManager.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "runtime_id": {
+            "title": "Runtime Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_id"
+        ],
+        "title": "runtime_stopArguments"
+      }
+    },
+    {
+      "name": "system.status",
+      "description": "Inspect current ownership, transitions, anomalies, and optional telemetry.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "title": "system_statusArguments"
+      }
+    }
+  ]
+}
