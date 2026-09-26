@@ -6,7 +6,8 @@ import yaml
 from flamoris_mcp_hub.config import Catalog, load_upstreams
 
 
-def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path):
+def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path, monkeypatch):
+    monkeypatch.delenv("GENERATION_MCP_API_KEY", raising=False)
     template = Path(__file__).parents[1] / "config/mcps/_generation.example.yaml"
     raw = yaml.safe_load(template.read_text(encoding="utf-8"))
     schemas = {tool["name"]: tool["input_schema"] for tool in raw["tools"]}
@@ -31,6 +32,10 @@ def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path):
     catalog = Catalog(load_upstreams(tmp_path))
     assert "generation.workflows.build" in catalog.tools
     assert "generation.assets.delete" in catalog.tools
+    assert catalog.configs["generation"].headers() == {}
+    # An unrelated stale variable must not cause fabricated upstream credentials.
+    monkeypatch.setenv("GENERATION_MCP_API_KEY", "unused")
+    assert catalog.configs["generation"].headers() == {}
 
 
 def test_loads_catalog_without_secret_or_network(tmp_path: Path, monkeypatch):
