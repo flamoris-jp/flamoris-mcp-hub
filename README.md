@@ -108,10 +108,16 @@ tools:
       additionalProperties: false
 ```
 
-When an upstream requires a secret, the secret itself lives only in `.env`:
+Generation MCP currently has no application-level Bearer authentication. The
+shipped template therefore sends no Authorization header and requires no
+`GENERATION_MCP_API_KEY`. Do not create a dummy credential: protect that upstream
+at its network/proxy boundary. Enable the optional fields only when the selected
+upstream or an authenticated proxy actually validates them.
+
+When another upstream requires a secret, the secret itself lives only in `.env`:
 
 ```dotenv
-GENERATION_MCP_API_KEY=replace-with-your-secret
+OTHER_MCP_API_KEY=replace-with-your-secret
 ```
 
 ### Startup behavior: recognize, do not connect
