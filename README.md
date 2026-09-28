@@ -324,3 +324,34 @@ Third-party code, services, models, model weights, datasets, media, and other no
 - [FLAMORIS MCP Core](https://github.com/flamoris-jp/flamoris-mcp-core) — shared MCP infrastructure for FLAMORIS applications and tools
 - [FLAMORIS Generation MCP](https://github.com/flamoris-jp/flamoris-generation-mcp) — provider-neutral generation MCP server
 - [FLAMORIS organization configuration](https://github.com/flamoris-jp/.github) — shared GitHub profile and community health files
+
+## Desktop connectors (Core/Wpf 1.2.0)
+
+`transport: reverse-websocket` accepts an outbound connection from the desktop at
+`wss://<hub-host>/desktop/<upstream-id>`. Keep HTTPS/WSS termination and the explicit
+Host allowlist at your reverse proxy; forward WebSocket Upgrade/Connection headers.
+Do not expose a desktop listener. Existing Streamable HTTP upstreams are unchanged.
+
+Start with `config/mcps/_desktop.example.yaml`, copy it to a non-underscore YAML name,
+and set `connector_token_env` to a separate random secret of at least 32 characters.
+This credential is independent of the Hub's client token and is scoped to one logical
+upstream. Enter the same secret through the desktop's Settings (Windows Credential
+Manager). `product_id` must match the application: `flamoris.cutwork`, `flamoris.2d`,
+`flamoris.kachinco`. An occupied upstream rejects takeover.
+
+The starter example advertises only `mcp.context`. To expose editing APIs, start the
+connection and use **Copy Hub registration settings** in the shared Hub settings.
+Review the resulting JSON (also valid YAML), including the exact schemas, namespace
+and credential environment variable, before replacing the Hub catalog and restarting.
+This is an explicit administrator action; a connector cannot add unreviewed tools to
+the public catalog. Read-only connections omit mutations and reject direct attempts.
+
+The Hub remains healthy while desktops are offline. `hub.upstreams.list` reports the
+connection and catalog mismatch. One call is in flight per desktop; excess calls fail
+as busy. A call whose delivery is ambiguous is never retried. Disconnect, shutdown or
+client cancellation cancels uncommitted work, but cannot undo an already committed edit.
+Connector and client authentication are separate. Browser-origin WebSockets, duplicate
+authorization headers, bad hosts, unknown IDs and missing credentials are rejected.
+
+Deployment to a live Hub and physical Windows UI acceptance are separate from source
+integration. No production secrets or deployment-specific paths are supplied here.

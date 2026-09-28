@@ -12,6 +12,7 @@ from mcp.client.streamable_http import streamable_http_client
 from mcp.types import CallToolResult
 
 from .config import Catalog, UpstreamConfig
+from .reverse import ReverseConnection
 
 logger = logging.getLogger(__name__)
 
@@ -186,7 +187,12 @@ class LazyConnection:
 class UpstreamRegistry:
     def __init__(self, catalog: Catalog) -> None:
         self.catalog = catalog
-        self._connections = {c.id: LazyConnection(c) for c in catalog.configs.values()}
+        self._connections = {
+            c.id: (
+                ReverseConnection(c) if c.transport == "reverse-websocket" else LazyConnection(c)
+            )
+            for c in catalog.configs.values()
+        }
         self._group: anyio.abc.TaskGroup | None = None
 
     @contextlib.asynccontextmanager
@@ -205,7 +211,8 @@ class UpstreamRegistry:
             {
                 "id": c.config.id,
                 "namespace": c.config.namespace,
-                "url": str(c.config.url),
+                "url": str(c.config.url) if c.config.url is not None else None,
+                "transport": c.config.transport,
                 "configured_tools": len(c.config.tools),
                 "connected": c.connected,
                 "last_error": c.last_error,

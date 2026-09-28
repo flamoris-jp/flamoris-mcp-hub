@@ -1,0 +1,15 @@
+# Enable by copying to cutwork.yaml and setting a separate connector token in the environment.
+id: cutwork
+namespace: cutwork
+transport: reverse-websocket
+product_id: flamoris.cutwork
+connector_token_env: CUTWORK_CONNECTOR_TOKEN
+# Pin reviewed app schemas here; offline discovery always uses this catalog.
+# mcp.context alone is sufficient for initial connection verification.
+tools:
+  - name: mcp.context
+    description: Current live identity, revision and permission
+    input_schema:
+      type: object
+      properties: {}
+      additionalProperties: false

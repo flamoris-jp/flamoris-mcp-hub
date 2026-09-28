@@ -6,6 +6,7 @@ import yaml
 from starlette.responses import Response
 
 from flamoris_mcp_hub.auth import TOKEN_ENV, BearerAuth, client_token
+from flamoris_mcp_hub.reverse import DesktopGateway
 from flamoris_mcp_hub.server import create_app
 
 TOKEN = "a-test-token-that-is-at-least-32-characters"
@@ -72,7 +73,7 @@ async def test_auth_keeps_sdk_host_and_origin_protection(monkeypatch, tmp_path):
     monkeypatch.setenv("FLAMORIS_MCP_HUB_CONFIG_DIR", str(tmp_path))
     app = create_app()
     async with (
-        app.app.router.lifespan_context(app.app),
+        app.app.app.router.lifespan_context(app.app.app),
         httpx2.AsyncClient(
             transport=httpx2.ASGITransport(app=app), base_url="http://localhost"
         ) as client,
@@ -89,7 +90,7 @@ def test_mounted_env_loaded_before_security(monkeypatch, tmp_path):
     env = tmp_path / ".env"
     env.write_text(f"{TOKEN_ENV}={TOKEN}\n")
     monkeypatch.setenv("FLAMORIS_MCP_HUB_ENV_FILE", str(env))
-    assert isinstance(create_app(), BearerAuth)
+    assert isinstance(create_app(), DesktopGateway)
     monkeypatch.delenv(TOKEN_ENV)
     env.write_text("")
     with pytest.raises(ValueError, match=TOKEN_ENV):
