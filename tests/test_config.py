@@ -28,7 +28,9 @@ def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path, 
     }
     assert schemas["assets.prepare"] == {
         "properties": {"asset_id": {"title": "Asset Id", "type": "string"}},
-        "required": ["asset_id"], "title": "prepare_assetArguments", "type": "object",
+        "required": ["asset_id"],
+        "title": "prepare_assetArguments",
+        "type": "object",
     }
     assert schemas["assets.read"] == {
         "properties": {
@@ -38,7 +40,8 @@ def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path, 
             "length": {"default": 262144, "title": "Length", "type": "integer"},
         },
         "required": ["asset_id", "sha256", "offset"],
-        "title": "read_assetArguments", "type": "object",
+        "title": "read_assetArguments",
+        "type": "object",
     }
     assert not list(tmp_path.iterdir())
     assert load_upstreams(template.parent) == []
