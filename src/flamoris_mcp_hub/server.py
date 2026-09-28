@@ -26,6 +26,7 @@ from starlette.types import Receive, Scope, Send
 
 from .auth import BearerAuth, client_token
 from .config import env_file
+from .reverse import DesktopGateway
 from .runtime import start_registry
 from .upstream import UpstreamRegistry
 
@@ -133,22 +134,41 @@ def transport_security() -> TransportSecuritySettings:
     return TransportSecuritySettings(allowed_hosts=hosts, allowed_origins=origins)
 
 
-def create_app(*, host: str = "127.0.0.1", mcp_path: str = "/mcp") -> BearerAuth:
+def create_app(*, host: str = "127.0.0.1", mcp_path: str = "/mcp") -> DesktopGateway:
     # Read mounted configuration before constructing either security boundary.
     load_dotenv(env_file(), override=False)
     token = client_token()  # Fail closed before starting a registry or listener.
-    return BearerAuth(
-        server.streamable_http_app(
-            streamable_http_path=mcp_path,
-            host=host,
-            transport_security=transport_security(),
+    holder = {}
+
+    @asynccontextmanager
+    async def runtime_lifespan(_server):
+        _catalog, registry = start_registry()
+        holder["registry"] = registry
+        try:
+            async with registry.run():
+                yield registry
+        finally:
+            holder.pop("registry", None)
+
+    runtime_server = Server(
+        "FLAMORIS MCP Hub",
+        version="0.1.0",
+        lifespan=runtime_lifespan,
+        on_list_tools=on_list_tools,
+        on_call_tool=on_call_tool,
+    )
+    security = transport_security()
+    http = BearerAuth(
+        runtime_server.streamable_http_app(
+            streamable_http_path=mcp_path, host=host, transport_security=security
         ),
         token,
     )
+    return DesktopGateway(http, holder, security.allowed_hosts)
 
 
 @lru_cache(maxsize=1)
-def _default_app() -> BearerAuth:
+def _default_app() -> DesktopGateway:
     return create_app()
 
 
@@ -169,7 +189,15 @@ def main() -> None:
     args = parse_args()
     logging.basicConfig(level=logging.INFO)
     runtime_app = create_app(host=args.host, mcp_path=args.mcp_path)
-    uvicorn.run(runtime_app, host=args.host, port=args.port)
+    uvicorn.run(
+        runtime_app,
+        host=args.host,
+        port=args.port,
+        ws_max_size=4 * 1024 * 1024,
+        ws_max_queue=4,
+        ws_ping_interval=15,
+        ws_ping_timeout=15,
+    )
 
 
 if __name__ == "__main__":

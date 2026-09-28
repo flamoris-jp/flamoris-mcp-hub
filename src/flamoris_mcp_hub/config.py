@@ -41,8 +41,10 @@ class UpstreamConfig(BaseModel):
     id: str = Field(pattern=r"^[A-Za-z0-9_-]+$")
     namespace: str = Field(pattern=r"^[A-Za-z0-9_-]+$")
     enabled: bool = True
-    transport: Literal["streamable-http"] = "streamable-http"
-    url: HttpUrl
+    transport: Literal["streamable-http", "reverse-websocket"] = "streamable-http"
+    url: HttpUrl | None = None
+    product_id: str | None = None
+    connector_token_env: str | None = None
     api_key_env: str | None = None
     api_key_header: str = "Authorization"
     api_key_prefix: str = "Bearer "
@@ -52,6 +54,20 @@ class UpstreamConfig(BaseModel):
     def validate_config(self) -> UpstreamConfig:
         if self.api_key_env is not None and not self.api_key_env.strip():
             raise ValueError("api_key_env must be a non-empty environment variable name")
+
+        if self.transport == "streamable-http" and self.url is None:
+            raise ValueError("streamable-http requires url")
+        if self.transport == "reverse-websocket":
+            if self.url is not None or not self.product_id or not self.connector_token_env:
+                raise ValueError(
+                    "reverse-websocket requires product_id and connector_token_env, no url"
+                )
+            if not self.connector_token_env.strip() or not any(
+                t.name == "mcp.context" for t in self.tools
+            ):
+                raise ValueError(
+                    "reverse-websocket requires credential reference and pinned mcp.context"
+                )
 
         seen: set[str] = set()
         for tool in self.tools:
