@@ -26,12 +26,28 @@ def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path, 
         "title": "delete_assetArguments",
         "type": "object",
     }
+    assert schemas["assets.prepare"] == {
+        "properties": {"asset_id": {"title": "Asset Id", "type": "string"}},
+        "required": ["asset_id"], "title": "prepare_assetArguments", "type": "object",
+    }
+    assert schemas["assets.read"] == {
+        "properties": {
+            "asset_id": {"title": "Asset Id", "type": "string"},
+            "sha256": {"title": "Sha256", "type": "string"},
+            "offset": {"title": "Offset", "type": "integer"},
+            "length": {"default": 262144, "title": "Length", "type": "integer"},
+        },
+        "required": ["asset_id", "sha256", "offset"],
+        "title": "read_assetArguments", "type": "object",
+    }
     assert not list(tmp_path.iterdir())
     assert load_upstreams(template.parent) == []
     (tmp_path / "generation.yaml").write_text(template.read_text(encoding="utf-8"))
     catalog = Catalog(load_upstreams(tmp_path))
     assert "generation.workflows.build" in catalog.tools
     assert "generation.assets.delete" in catalog.tools
+    assert "generation.assets.prepare" in catalog.tools
+    assert "generation.assets.read" in catalog.tools
     assert catalog.configs["generation"].headers() == {}
     # An unrelated stale variable must not cause fabricated upstream credentials.
     monkeypatch.setenv("GENERATION_MCP_API_KEY", "unused")
