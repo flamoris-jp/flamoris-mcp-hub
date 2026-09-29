@@ -74,6 +74,18 @@ tools:
     properties: {}
     title: list_workflowsArguments
     type: object
+- name: workflows.register
+  description: Validate, persist, and immediately activate a trusted generation workflow definition.
+  input_schema:
+    type: object
+    properties:
+      definition:
+        additionalProperties: true
+        title: Definition
+        type: object
+    required:
+    - definition
+    title: register_workflowArguments
 - name: workflows.build
   description: Build a validated generation workflow from a built-in template or trusted definition.
   input_schema:
