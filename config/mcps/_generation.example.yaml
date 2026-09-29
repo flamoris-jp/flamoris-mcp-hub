@@ -224,3 +224,36 @@ tools:
     - asset_id
     title: delete_assetArguments
     type: object
+- name: inputs.create
+  description: Snapshot a generated image/audio asset as an immutable expiring input.
+  input_schema:
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+    required:
+    - asset_id
+    title: create_inputArguments
+    type: object
+- name: inputs.get
+  description: Inspect managed input metadata; an ID is not a Studio ownership grant.
+  input_schema:
+    properties:
+      input_id:
+        title: Input Id
+        type: string
+    required:
+    - input_id
+    title: get_inputArguments
+    type: object
+- name: inputs.delete
+  description: Delete a managed snapshot unless a provider adapter is using it.
+  input_schema:
+    properties:
+      input_id:
+        title: Input Id
+        type: string
+    required:
+    - input_id
+    title: delete_inputArguments
+    type: object

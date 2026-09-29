@@ -1,11 +1,12 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 from types import SimpleNamespace
 
 import anyio
 import pytest
 from mcp.types import CallToolResult, ImageContent
 
-from flamoris_mcp_hub.config import Catalog, ToolConfig, UpstreamConfig
+from flamoris_mcp_hub.config import Catalog, ToolConfig, UpstreamConfig, load_upstreams
 from flamoris_mcp_hub.upstream import UpstreamRegistry
 
 SCHEMA = {"type": "object", "properties": {}, "additionalProperties": False}
@@ -34,6 +35,8 @@ class FakeSession:
             raise ConnectionError("stale")
         if self.state.get("missing"):
             return SimpleNamespace(tools=[])
+        if "tools" in self.state:
+            return SimpleNamespace(tools=self.state["tools"])
         return SimpleNamespace(
             tools=[
                 SimpleNamespace(name="jobs.submit", input_schema=self.state.get("schema", SCHEMA))
@@ -42,6 +45,7 @@ class FakeSession:
 
     async def call_tool(self, name, arguments):
         self.state["calls"] += 1
+        self.state.setdefault("requests", []).append((name, arguments))
         if self.state.get("block_calls"):
             self.state["entered"].set()
             await self.state["release"].wait()
@@ -104,6 +108,35 @@ async def test_lazy_reuse_stale_reconnect_and_non_text_forwarding(fake_transport
         assert fake_transport["connections"] == 2
         assert fake_transport["calls"] == 3
     assert fake_transport["closed"] == 2
+
+
+@pytest.mark.asyncio
+async def test_managed_inputs_route_through_generation_catalog(tmp_path, fake_transport):
+    template = Path(__file__).parents[1] / "config/mcps/_generation.example.yaml"
+    (tmp_path / "generation.yaml").write_text(template.read_text(encoding="utf-8"))
+    catalog = Catalog(load_upstreams(tmp_path))
+    config = catalog.configs["generation"]
+    fake_transport["tools"] = [
+        SimpleNamespace(name=tool.name, input_schema=tool.input_schema) for tool in config.tools
+    ]
+    hub = UpstreamRegistry(catalog)
+    assert hub.status()[0]["connected"] is False
+    assert fake_transport["connections"] == 0
+
+    async with hub.run():
+        for name, arguments in (
+            ("inputs.create", {"asset_id": "job:000"}),
+            ("inputs.get", {"input_id": "a" * 32}),
+            ("inputs.delete", {"input_id": "a" * 32}),
+        ):
+            await hub.call_public_tool(f"generation.{name}", arguments)
+
+    assert fake_transport["requests"] == [
+        ("inputs.create", {"asset_id": "job:000"}),
+        ("inputs.get", {"input_id": "a" * 32}),
+        ("inputs.delete", {"input_id": "a" * 32}),
+    ]
+    assert fake_transport["connections"] == 1
 
 
 @pytest.mark.asyncio
