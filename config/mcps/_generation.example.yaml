@@ -167,6 +167,40 @@ tools:
     - asset_id
     title: get_assetArguments
     type: object
+- name: assets.prepare
+  description: Materialize one asset for bounded transfer; return immutable content digest.
+  input_schema:
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+    required:
+    - asset_id
+    title: prepare_assetArguments
+    type: object
+- name: assets.read
+  description: Read at most 256 KiB from a prepared asset at a retryable byte offset.
+  input_schema:
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+      sha256:
+        title: Sha256
+        type: string
+      offset:
+        title: Offset
+        type: integer
+      length:
+        default: 262144
+        title: Length
+        type: integer
+    required:
+    - asset_id
+    - sha256
+    - offset
+    title: read_assetArguments
+    type: object
 - name: assets.delete
   description: Delete one Hub-managed generated asset (not provider originals).
   input_schema:

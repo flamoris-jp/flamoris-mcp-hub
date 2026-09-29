@@ -97,6 +97,14 @@ Older checkouts may have `config/mcps/generation.yaml` tracked by Git. Before up
 
 After updating, copy `config/mcps/_generation.example.yaml` to `config/mcps/generation.yaml`, then restore the endpoint and authentication settings for that deployment. The resulting runtime YAML is intentionally ignored by Git.
 
+The template includes `assets.prepare` and `assets.read` for bounded asset
+delivery. Existing deployments must add these exact tool definitions to their
+runtime YAML and restart the Hub after deploying a compatible Generation MCP.
+Studio uses these tools for images above its small native-image threshold, so
+leaving an older runtime catalog in place will prevent preview and download.
+The Hub does not authorize individual Studio users; Studio checks ownership on
+every transfer request before forwarding it through the authenticated Hub.
+
 ## Upstream MCP configuration
 
 The Hub uses **one YAML file per MCP** under:
