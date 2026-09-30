@@ -13,18 +13,30 @@ url: https://generation.example.com/mcp
 # api_key_prefix: 'Bearer '
 tools:
 - name: system.health
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
   description: Check the Generation MCP process and provider availability.
   input_schema:
     properties: {}
     title: healthArguments
     type: object
 - name: capabilities.list
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
   description: List provider-independent generation capabilities.
   input_schema:
     properties: {}
     title: list_capabilitiesArguments
     type: object
 - name: capabilities.get
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
   description: Inspect one generation capability.
   input_schema:
     properties:
@@ -36,6 +48,10 @@ tools:
     title: get_capabilityArguments
     type: object
 - name: models.list
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
   description: List installed generation models, optionally filtered by kind.
   input_schema:
     properties:
@@ -58,6 +74,10 @@ tools:
     title: list_modelsArguments
     type: object
 - name: models.get
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
   description: Inspect one installed generation model.
   input_schema:
     properties:
@@ -69,12 +89,20 @@ tools:
     title: get_modelArguments
     type: object
 - name: workflows.list
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
   description: List generation workflow templates and known workflow IDs.
   input_schema:
     properties: {}
     title: list_workflowsArguments
     type: object
 - name: workflows.register
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
   description: Validate, persist, and immediately activate a trusted generation workflow definition.
   input_schema:
     type: object
@@ -87,6 +115,10 @@ tools:
     - definition
     title: register_workflowArguments
 - name: workflows.build
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
   description: Build a validated generation workflow from a built-in template or trusted definition.
   input_schema:
     type: object
@@ -103,6 +135,10 @@ tools:
     - parameters
     title: build_workflowArguments
 - name: workflows.save
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
   description: Persist a generation workflow recipe.
   input_schema:
     properties:
@@ -114,6 +150,10 @@ tools:
     title: save_workflowArguments
     type: object
 - name: jobs.submit
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
   description: Submit one generation workflow.
   input_schema:
     properties:
@@ -125,6 +165,10 @@ tools:
     title: submit_jobArguments
     type: object
 - name: jobs.status
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
   description: Poll the status of a generation job.
   input_schema:
     properties:
@@ -136,6 +180,10 @@ tools:
     title: job_statusArguments
     type: object
 - name: jobs.result
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
   description: Get result metadata for a generation job.
   input_schema:
     properties:
@@ -147,6 +195,10 @@ tools:
     title: job_resultArguments
     type: object
 - name: jobs.cancel
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
   description: Request cancellation of a generation job.
   input_schema:
     properties:
@@ -158,6 +210,10 @@ tools:
     title: cancel_jobArguments
     type: object
 - name: assets.list
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
   description: List generated asset metadata for a completed job.
   input_schema:
     properties:
@@ -169,6 +225,10 @@ tools:
     title: list_assetsArguments
     type: object
 - name: assets.get
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
   description: Return one generated asset as MCP-native media content.
   input_schema:
     properties:
@@ -180,6 +240,10 @@ tools:
     title: get_assetArguments
     type: object
 - name: assets.prepare
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
   description: Materialize one asset for bounded transfer; return immutable content digest.
   input_schema:
     properties:
@@ -191,6 +255,10 @@ tools:
     title: prepare_assetArguments
     type: object
 - name: assets.read
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
   description: Read at most 256 KiB from a prepared asset at a retryable byte offset.
   input_schema:
     properties:
@@ -214,6 +282,10 @@ tools:
     title: read_assetArguments
     type: object
 - name: assets.delete
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
   description: Delete one Hub-managed generated asset (not provider originals).
   input_schema:
     properties:
@@ -225,6 +297,10 @@ tools:
     title: delete_assetArguments
     type: object
 - name: inputs.create
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
   description: Snapshot a generated image/audio asset as an immutable expiring input.
   input_schema:
     properties:
@@ -236,6 +312,10 @@ tools:
     title: create_inputArguments
     type: object
 - name: inputs.get
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
   description: Inspect managed input metadata; an ID is not a Studio ownership grant.
   input_schema:
     properties:
@@ -247,6 +327,10 @@ tools:
     title: get_inputArguments
     type: object
 - name: inputs.delete
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
   description: Delete a managed snapshot unless a provider adapter is using it.
   input_schema:
     properties:

@@ -8,7 +8,23 @@ import yaml
 from dotenv import load_dotenv
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
+from mcp.types import ToolAnnotations
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, StrictBool, model_validator
+
+
+class CatalogAnnotations(BaseModel):
+    """Reviewed hints; omitted legacy metadata retains MCP's conservative defaults."""
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    read_only_hint: StrictBool = Field(default=False, alias="readOnlyHint")
+    destructive_hint: StrictBool = Field(default=True, alias="destructiveHint")
+    open_world_hint: StrictBool = Field(default=True, alias="openWorldHint")
+    idempotent_hint: StrictBool | None = Field(default=None, alias="idempotentHint")
+    title: str | None = None
+
+    def to_mcp(self) -> ToolAnnotations:
+        return ToolAnnotations.model_validate(self.model_dump(by_alias=True, exclude_none=True))
 
 
 class ToolConfig(BaseModel):
@@ -16,6 +32,7 @@ class ToolConfig(BaseModel):
 
     name: str = Field(pattern=r"^[A-Za-z0-9_.-]+$")
     description: str = ""
+    annotations: CatalogAnnotations = Field(default_factory=CatalogAnnotations)
     input_schema: dict[str, Any] = Field(
         default_factory=lambda: {
             "type": "object",
