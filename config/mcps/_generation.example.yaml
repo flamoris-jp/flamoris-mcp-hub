@@ -166,7 +166,7 @@ tools:
     type: object
 - name: jobs.status
   annotations:
-    readOnlyHint: true
+    readOnlyHint: false
     destructiveHint: false
     openWorldHint: false
   description: Poll the status of a generation job.

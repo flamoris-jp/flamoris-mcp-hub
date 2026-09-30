@@ -129,6 +129,7 @@ def test_generation_effects_are_not_misclassified(tmp_path):
         "workflows.register",
         "workflows.save",
         "jobs.submit",
+        "jobs.status",  # Polling can finalize jobs and persist metadata/retention.
         "jobs.result",
         "assets.list",
         "assets.get",
@@ -144,6 +145,8 @@ def test_generation_effects_are_not_misclassified(tmp_path):
         "workflows.save",
     ]:
         assert tools[name].destructive_hint is True
-    for name in ["system.health", "models.list", "jobs.status", "inputs.get", "assets.read"]:
+    assert tools["jobs.status"].destructive_hint is False
+    assert tools["jobs.status"].open_world_hint is False
+    for name in ["system.health", "models.list", "inputs.get", "assets.read"]:
         assert tools[name].read_only_hint is True
         assert tools[name].destructive_hint is False
