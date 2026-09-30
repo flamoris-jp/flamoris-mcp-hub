@@ -135,6 +135,10 @@ url: https://generation.example.com/mcp
 tools:
   - name: jobs.submit
     description: Submit one generation workflow.
+    annotations:
+      readOnlyHint: false
+      destructiveHint: false
+      openWorldHint: false
     input_schema:
       type: object
       properties:
@@ -155,6 +159,38 @@ When another upstream requires a secret, the secret itself lives only in `.env`:
 ```dotenv
 OTHER_MCP_API_KEY=replace-with-your-secret
 ```
+
+### Tool annotations and existing catalogs
+
+The Hub advertises `annotations` on every tool, including `hub.upstreams.list`.
+Configure `readOnlyHint`, `destructiveHint`, and `openWorldHint` as YAML booleans
+for each reviewed tool. Optional `idempotentHint` and `title` are preserved.
+These hints describe effects; they do not grant permission or replace upstream
+authorization. Strings such as `"false"`, numbers, null annotations, and unknown
+annotation keys are rejected at configuration load.
+
+Existing catalogs without annotations still load. Missing hints use conservative
+MCP defaults: `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: true`.
+The Hub does not guess effects from names or contact upstreams at discovery time.
+Explicit partial annotations retain the same defaults for omitted hints.
+
+When upgrading, add reviewed annotations to **each deployment-local YAML** using
+the templates as references and restart the Hub. Preserve the deployment endpoint,
+authentication references and exact schemas. Updating underscore templates alone
+never changes a mounted runtime catalog. Desktop registration exports may also
+omit annotations; add them after reviewing the exposed editing APIs.
+
+The shipped Generation template treats result/asset materialization and workflow
+building as mutations, and cancellation/deletion/recipe replacement as destructive.
+Its endpoints are bounded configured providers, so `openWorldHint` is false. Revisit
+that hint if a deployment permits workflows accessing arbitrary external entities.
+GPU runtime activation/stop are disruptive mutations, not read-only observations.
+Unknown tools retain conservative defaults until their actual behavior is reviewed.
+
+OpenAI's current [annotation reference](https://developers.openai.com/plugins/reference#annotations)
+requires the three boolean hints. After deployment, refresh/scan the tool catalog
+and retry plugin creation. Missing annotations were a confirmed metadata defect;
+resolution of a particular registration error requires that live acceptance test.
 
 ### Startup behavior: recognize, do not connect
 

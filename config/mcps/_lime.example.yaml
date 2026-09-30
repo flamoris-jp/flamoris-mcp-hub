@@ -15,6 +15,11 @@
         "type": "object",
         "properties": {},
         "title": "runtime_listArguments"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
       }
     },
     {
@@ -32,6 +37,11 @@
           "runtime_id"
         ],
         "title": "runtime_statusArguments"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
       }
     },
     {
@@ -49,6 +59,11 @@
           "runtime_id"
         ],
         "title": "runtime_activateArguments"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -66,6 +81,11 @@
           "runtime_id"
         ],
         "title": "runtime_stopArguments"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -75,6 +95,11 @@
         "type": "object",
         "properties": {},
         "title": "system_statusArguments"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
       }
     }
   ]

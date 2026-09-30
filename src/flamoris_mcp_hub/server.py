@@ -21,6 +21,7 @@ from mcp.types import (
     PaginatedRequestParams,
     TextContent,
     Tool,
+    ToolAnnotations,
 )
 from starlette.types import Receive, Scope, Send
 
@@ -34,6 +35,9 @@ logger = logging.getLogger(__name__)
 
 HUB_STATUS_TOOL = Tool(
     name="hub.upstreams.list",
+    annotations=ToolAnnotations(
+        readOnlyHint=True, destructiveHint=False, openWorldHint=False, idempotentHint=True
+    ),
     description="List configured upstream MCPs and their current lazy connection state.",
     input_schema={
         "type": "object",
@@ -60,6 +64,7 @@ async def on_list_tools(
             name=public_name,
             description=tool.description,
             input_schema=tool.input_schema,
+            annotations=tool.annotations.to_mcp(),
         )
         for public_name, (_config, tool) in sorted(registry.catalog.tools.items())
     ]

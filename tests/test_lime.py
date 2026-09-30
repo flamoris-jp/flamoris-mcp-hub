@@ -29,7 +29,9 @@ def test_lime_catalog_matches_pinned_upstream(tmp_path):
         "lime.runtime.stop",
         "lime.system.status",
     }
-    assert [t.model_dump() for t in configs.configs["lime"].tools] == FIXTURE["tools"]
+    assert [
+        t.model_dump(exclude={"annotations"}) for t in configs.configs["lime"].tools
+    ] == FIXTURE["tools"]
     assert configs.configs["lime"].headers() == {}
 
 

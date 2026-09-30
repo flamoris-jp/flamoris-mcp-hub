@@ -14,6 +14,10 @@ api_key_prefix: "Bearer "
 
 tools:
   - name: system.health
+    annotations:
+      readOnlyHint: true
+      destructiveHint: false
+      openWorldHint: false
     description: Example health API.
     input_schema:
       type: object
@@ -21,6 +25,10 @@ tools:
       additionalProperties: false
 
   - name: items.get
+    annotations:
+      readOnlyHint: true
+      destructiveHint: false
+      openWorldHint: false
     description: Example API with one argument.
     input_schema:
       type: object

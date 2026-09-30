@@ -8,6 +8,10 @@ connector_token_env: CUTWORK_CONNECTOR_TOKEN
 # mcp.context alone is sufficient for initial connection verification.
 tools:
   - name: mcp.context
+    annotations:
+      readOnlyHint: true
+      destructiveHint: false
+      openWorldHint: false
     description: Current live identity, revision and permission
     input_schema:
       type: object
