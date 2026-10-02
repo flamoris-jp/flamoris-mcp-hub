@@ -89,8 +89,12 @@ class LazyConnection:
 
     def _check_catalog(self, listed: Any) -> None:
         try:
+            if getattr(listed, "next_cursor", None) is not None:
+                raise ValueError("partial catalog")
             upstream = {tool.name: tool for tool in listed.tools}
-        except (AttributeError, TypeError) as exc:
+            if len(upstream) != len(listed.tools):
+                raise ValueError("duplicate tool names")
+        except (AttributeError, TypeError, ValueError) as exc:
             raise LookupError(
                 f"catalog mismatch: {self.config.id} returned invalid tools/list"
             ) from exc

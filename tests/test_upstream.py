@@ -36,7 +36,9 @@ class FakeSession:
         if self.state.get("missing"):
             return SimpleNamespace(tools=[])
         if "tools" in self.state:
-            return SimpleNamespace(tools=self.state["tools"])
+            return SimpleNamespace(
+                tools=self.state["tools"], next_cursor=self.state.get("next_cursor")
+            )
         return SimpleNamespace(
             tools=[
                 SimpleNamespace(name="jobs.submit", input_schema=self.state.get("schema", SCHEMA))

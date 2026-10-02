@@ -1,0 +1,144 @@
+# Exported from flamoris-intelligence-mcp 043b39b064fbedf9ed9a3e9e9eb57c6856efbb5c.
+# This shared-trust-group route carries no per-user Agent delegation.
+# Copy to intelligence.yaml only after approving the configured provider/data flow.
+# Optional proxy credentials: api_key_env: INTELLIGENCE_MCP_API_KEY
+id: intelligence
+namespace: intelligence
+enabled: true
+transport: streamable-http
+url: https://intelligence.example.com/mcp
+tools:
+- name: system.health
+  description: Report process health separately from bounded provider reachability.
+  input_schema:
+    properties: {}
+    title: healthArguments
+    type: object
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+- name: capabilities.list
+  description: List configured operations; discovery does not activate or probe a
+    runtime.
+  input_schema:
+    properties: {}
+    title: capabilitiesArguments
+    type: object
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+- name: capabilities.get
+  description: Get one operation by its capability ID.
+  input_schema:
+    properties:
+      capability_id:
+        title: Capability Id
+        type: string
+    required:
+    - capability_id
+    title: capabilityArguments
+    type: object
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+- name: models.list
+  description: List operator-configured model aliases; this is not live model discovery.
+  input_schema:
+    properties: {}
+    title: modelsArguments
+    type: object
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+- name: models.get
+  description: Get one configured model and its limits without exposing provider paths.
+  input_schema:
+    properties:
+      model_id:
+        title: Model Id
+        type: string
+    required:
+    - model_id
+    title: modelArguments
+    type: object
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+- name: inference.execute
+  description: "Execute once with no persistence/retry. request: model_id, input,\
+    \ optional instruction,\n        capability_id (text.generate/reasoning.generate/code.generate),\
+    \ max_output_tokens (1024),\n        temperature (0.7), timeout_seconds. Inputs\
+    \ and outputs go to the configured provider only.\n        Cancellation closes\
+    \ local work; remote GPU completion is not guaranteed.\n        "
+  input_schema:
+    properties:
+      request:
+        additionalProperties: false
+        properties:
+          model_id:
+            maxLength: 128
+            minLength: 1
+            title: Model Id
+            type: string
+          input:
+            maxLength: 262144
+            minLength: 1
+            title: Input
+            type: string
+          instruction:
+            default: ''
+            maxLength: 262144
+            title: Instruction
+            type: string
+          capability_id:
+            default: text.generate
+            enum:
+            - text.generate
+            - reasoning.generate
+            - code.generate
+            title: Capability Id
+            type: string
+          max_output_tokens:
+            default: 1024
+            maximum: 32768
+            minimum: 1
+            title: Max Output Tokens
+            type: integer
+          temperature:
+            default: 0.7
+            maximum: 2
+            minimum: 0
+            title: Temperature
+            type: number
+          timeout_seconds:
+            anyOf:
+            - exclusiveMinimum: 0
+              maximum: 300
+              type: number
+            - type: 'null'
+            default: null
+            title: Timeout Seconds
+        required:
+        - model_id
+        - input
+        title: InferenceRequest
+        type: object
+    required:
+    - request
+    title: executeArguments
+    type: object
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    idempotentHint: false
+    openWorldHint: true
