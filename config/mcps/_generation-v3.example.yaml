@@ -1,0 +1,498 @@
+# Optional catalog for Generation PR #51; requires FLAMORIS_WORKFLOW_V3_ENABLED=true.
+# Replace generation.yaml; do not load alongside the legacy Generation catalog.
+id: generation
+namespace: generation
+enabled: true
+transport: streamable-http
+url: https://generation.example.com/mcp
+tools:
+- name: system.health
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: Check this process and provider connectivity/queue availability.
+  input_schema:
+    type: object
+    properties: {}
+    title: healthArguments
+- name: capabilities.list
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: List provider-independent operations and current availability.
+  input_schema:
+    type: object
+    properties: {}
+    title: list_capabilitiesArguments
+- name: capabilities.get
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: Inspect one capability ID independently from provider transport details.
+  input_schema:
+    type: object
+    properties:
+      capability_id:
+        title: Capability Id
+        type: string
+    required:
+    - capability_id
+    title: get_capabilityArguments
+- name: models.list
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: Scan installed model files, optionally filtered by kind.
+  input_schema:
+    type: object
+    properties:
+      kind:
+        anyOf:
+        - enum:
+          - checkpoint
+          - lora
+          - vae
+          - controlnet
+          - clip
+          - clip_vision
+          - diffusion_model
+          - text_encoder
+          - unet
+          type: string
+        - type: 'null'
+        default: null
+        title: Kind
+    title: list_modelsArguments
+- name: models.get
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: Inspect one kind:relative_filename ID from models.list.
+  input_schema:
+    type: object
+    properties:
+      model_id:
+        title: Model Id
+        type: string
+    required:
+    - model_id
+    title: get_modelArguments
+- name: workflows.list
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: List known templates and workflow IDs (including saved recipes).
+  input_schema:
+    type: object
+    properties: {}
+    title: list_workflowsArguments
+- name: workflows.register
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  description: Validate, persist, and activate one trusted workflow definition immediately.
+  input_schema:
+    type: object
+    properties:
+      definition:
+        additionalProperties: true
+        title: Definition
+        type: object
+    required:
+    - definition
+    title: register_workflowArguments
+- name: workflows.build
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: Build a known template with validated parameters; returns a workflow_id.
+  input_schema:
+    type: object
+    properties:
+      template:
+        title: Template
+        type: string
+      parameters:
+        additionalProperties: true
+        title: Parameters
+        type: object
+      definition_version:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        title: Definition Version
+      definition_digest:
+        anyOf:
+        - type: string
+        - type: 'null'
+        default: null
+        title: Definition Digest
+      require_ready:
+        default: false
+        title: Require Ready
+        type: boolean
+    required:
+    - template
+    - parameters
+    title: build_workflowArguments
+- name: workflows.verify
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  description: Admit a bounded verification through the normal JobStore; poll its
+    job_id.
+  input_schema:
+    type: object
+    properties:
+      workflow_id:
+        title: Workflow Id
+        type: string
+      definition_version:
+        title: Definition Version
+        type: integer
+      definition_digest:
+        title: Definition Digest
+        type: string
+      parameters:
+        additionalProperties: true
+        title: Parameters
+        type: object
+    required:
+    - workflow_id
+    - definition_version
+    - definition_digest
+    - parameters
+    title: verify_workflowArguments
+- name: workflows.v3.register
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  description: Register a strict Image v3 provider or pinned pass-through composition;
+    not ready.
+  input_schema:
+    type: object
+    properties:
+      definition:
+        additionalProperties: true
+        title: Definition
+        type: object
+    required:
+    - definition
+    title: register_v3Arguments
+- name: workflows.v3.list
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: Return graph-free descriptor revision 3, independent of legacy Image
+    discovery.
+  input_schema:
+    type: object
+    properties: {}
+    title: list_v3Arguments
+- name: workflows.v3.build
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: Build an exact Image v3 invocation; production requires parent attestation.
+  input_schema:
+    type: object
+    properties:
+      workflow_id:
+        title: Workflow Id
+        type: string
+      definition_version:
+        title: Definition Version
+        type: integer
+      definition_digest:
+        title: Definition Digest
+        type: string
+      parameters:
+        additionalProperties: true
+        title: Parameters
+        type: object
+      require_ready:
+        default: true
+        title: Require Ready
+        type: boolean
+    required:
+    - workflow_id
+    - definition_version
+    - definition_digest
+    - parameters
+    title: build_v3Arguments
+- name: workflows.v3.verify
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  description: Smoke the entire exact composed Image plan through the ordinary JobStore
+    once.
+  input_schema:
+    type: object
+    properties:
+      workflow_id:
+        title: Workflow Id
+        type: string
+      definition_version:
+        title: Definition Version
+        type: integer
+      definition_digest:
+        title: Definition Digest
+        type: string
+      parameters:
+        additionalProperties: true
+        title: Parameters
+        type: object
+    required:
+    - workflow_id
+    - definition_version
+    - definition_digest
+    - parameters
+    title: verify_v3Arguments
+- name: workflows.v3.revoke
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  description: Administratively revoke an exact retained version and its dependent
+    compositions.
+  input_schema:
+    type: object
+    properties:
+      workflow_id:
+        title: Workflow Id
+        type: string
+      definition_version:
+        title: Definition Version
+        type: integer
+      definition_digest:
+        title: Definition Digest
+        type: string
+    required:
+    - workflow_id
+    - definition_version
+    - definition_digest
+    title: revoke_v3Arguments
+- name: workflows.save
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  description: Persist the parameter recipe for reuse by workflow_id after restart.
+  input_schema:
+    type: object
+    properties:
+      workflow_id:
+        title: Workflow Id
+        type: string
+    required:
+    - workflow_id
+    title: save_workflowArguments
+- name: jobs.submit
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: Submit one workflow when this process has no active generation.
+  input_schema:
+    type: object
+    properties:
+      workflow_id:
+        title: Workflow Id
+        type: string
+    required:
+    - workflow_id
+    title: submit_jobArguments
+- name: jobs.status
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: Poll execution status for a job submitted by this process.
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        title: Job Id
+        type: string
+    required:
+    - job_id
+    title: job_statusArguments
+- name: jobs.result
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: Return reproducibility metadata; download completed outputs to configured
+    storage.
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        title: Job Id
+        type: string
+    required:
+    - job_id
+    title: job_resultArguments
+- name: jobs.cancel
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  description: Cancel queued work; targeted running interruption requires configured
+    support.
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        title: Job Id
+        type: string
+    required:
+    - job_id
+    title: cancel_jobArguments
+- name: assets.list
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: List generated media assets belonging to one completed generation job.
+  input_schema:
+    type: object
+    properties:
+      job_id:
+        title: Job Id
+        type: string
+    required:
+    - job_id
+    title: list_assetsArguments
+- name: assets.delete
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  description: Delete one Hub-managed generated asset (not provider originals).
+  input_schema:
+    type: object
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+    required:
+    - asset_id
+    title: delete_assetArguments
+- name: assets.get
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: Return one generated image asset as MCP-native binary media content.
+  input_schema:
+    type: object
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+    required:
+    - asset_id
+    title: get_assetArguments
+- name: assets.prepare
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: Materialize one asset for bounded transfer; return immutable content
+    digest.
+  input_schema:
+    type: object
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+    required:
+    - asset_id
+    title: prepare_assetArguments
+- name: assets.read
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: Read at most 256 KiB from a prepared asset at a retryable byte offset.
+  input_schema:
+    type: object
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+      sha256:
+        title: Sha256
+        type: string
+      offset:
+        title: Offset
+        type: integer
+      length:
+        default: 262144
+        title: Length
+        type: integer
+    required:
+    - asset_id
+    - sha256
+    - offset
+    title: read_assetArguments
+- name: inputs.create
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: Snapshot a generated image/audio asset as an immutable expiring input.
+  input_schema:
+    type: object
+    properties:
+      asset_id:
+        title: Asset Id
+        type: string
+    required:
+    - asset_id
+    title: create_inputArguments
+- name: inputs.get
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: Inspect managed input metadata; an ID is not a Studio ownership grant.
+  input_schema:
+    type: object
+    properties:
+      input_id:
+        title: Input Id
+        type: string
+    required:
+    - input_id
+    title: get_inputArguments
+- name: inputs.delete
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  description: Delete a managed snapshot unless a provider adapter is using it.
+  input_schema:
+    type: object
+    properties:
+      input_id:
+        title: Input Id
+        type: string
+    required:
+    - input_id
+    title: delete_inputArguments

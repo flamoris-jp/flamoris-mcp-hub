@@ -1,0 +1,641 @@
+{
+  "system.health": {
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "title": "healthArguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "capabilities.list": {
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "title": "list_capabilitiesArguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "capabilities.get": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "capability_id": {
+          "title": "Capability Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability_id"
+      ],
+      "title": "get_capabilityArguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "models.list": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "checkpoint",
+                "lora",
+                "vae",
+                "controlnet",
+                "clip",
+                "clip_vision",
+                "diffusion_model",
+                "text_encoder",
+                "unet"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        }
+      },
+      "title": "list_modelsArguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "models.get": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "title": "Model Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_id"
+      ],
+      "title": "get_modelArguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "workflows.list": {
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "title": "list_workflowsArguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "workflows.register": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "definition": {
+          "additionalProperties": true,
+          "title": "Definition",
+          "type": "object"
+        }
+      },
+      "required": [
+        "definition"
+      ],
+      "title": "register_workflowArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  },
+  "workflows.build": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "template": {
+          "title": "Template",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "title": "Parameters",
+          "type": "object"
+        },
+        "definition_version": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Definition Version"
+        },
+        "definition_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Definition Digest"
+        },
+        "require_ready": {
+          "default": false,
+          "title": "Require Ready",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "template",
+        "parameters"
+      ],
+      "title": "build_workflowArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "workflows.verify": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "title": "Workflow Id",
+          "type": "string"
+        },
+        "definition_version": {
+          "title": "Definition Version",
+          "type": "integer"
+        },
+        "definition_digest": {
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "title": "Parameters",
+          "type": "object"
+        }
+      },
+      "required": [
+        "workflow_id",
+        "definition_version",
+        "definition_digest",
+        "parameters"
+      ],
+      "title": "verify_workflowArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  },
+  "workflows.v3.register": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "definition": {
+          "additionalProperties": true,
+          "title": "Definition",
+          "type": "object"
+        }
+      },
+      "required": [
+        "definition"
+      ],
+      "title": "register_v3Arguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  },
+  "workflows.v3.list": {
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "title": "list_v3Arguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "workflows.v3.build": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "title": "Workflow Id",
+          "type": "string"
+        },
+        "definition_version": {
+          "title": "Definition Version",
+          "type": "integer"
+        },
+        "definition_digest": {
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "title": "Parameters",
+          "type": "object"
+        },
+        "require_ready": {
+          "default": true,
+          "title": "Require Ready",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "workflow_id",
+        "definition_version",
+        "definition_digest",
+        "parameters"
+      ],
+      "title": "build_v3Arguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "workflows.v3.verify": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "title": "Workflow Id",
+          "type": "string"
+        },
+        "definition_version": {
+          "title": "Definition Version",
+          "type": "integer"
+        },
+        "definition_digest": {
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "title": "Parameters",
+          "type": "object"
+        }
+      },
+      "required": [
+        "workflow_id",
+        "definition_version",
+        "definition_digest",
+        "parameters"
+      ],
+      "title": "verify_v3Arguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  },
+  "workflows.v3.revoke": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "title": "Workflow Id",
+          "type": "string"
+        },
+        "definition_version": {
+          "title": "Definition Version",
+          "type": "integer"
+        },
+        "definition_digest": {
+          "title": "Definition Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workflow_id",
+        "definition_version",
+        "definition_digest"
+      ],
+      "title": "revoke_v3Arguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  },
+  "workflows.save": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "title": "Workflow Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workflow_id"
+      ],
+      "title": "save_workflowArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  },
+  "jobs.submit": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "title": "Workflow Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workflow_id"
+      ],
+      "title": "submit_jobArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "jobs.status": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "title": "Job Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id"
+      ],
+      "title": "job_statusArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "jobs.result": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "title": "Job Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id"
+      ],
+      "title": "job_resultArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "jobs.cancel": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "title": "Job Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id"
+      ],
+      "title": "cancel_jobArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  },
+  "assets.list": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "title": "Job Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id"
+      ],
+      "title": "list_assetsArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "assets.delete": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "delete_assetArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  },
+  "assets.get": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "get_assetArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "assets.prepare": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "prepare_assetArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "assets.read": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        },
+        "offset": {
+          "title": "Offset",
+          "type": "integer"
+        },
+        "length": {
+          "default": 262144,
+          "title": "Length",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "asset_id",
+        "sha256",
+        "offset"
+      ],
+      "title": "read_assetArguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "inputs.create": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "create_inputArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "inputs.get": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "input_id": {
+          "title": "Input Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input_id"
+      ],
+      "title": "get_inputArguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "inputs.delete": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "input_id": {
+          "title": "Input Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input_id"
+      ],
+      "title": "delete_inputArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  }
+}

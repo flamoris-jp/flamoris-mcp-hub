@@ -105,6 +105,30 @@ leaving an older runtime catalog in place will prevent preview and download.
 The Hub does not authorize individual Studio users; Studio checks ownership on
 every transfer request before forwarding it through the authenticated Hub.
 
+### Optional Generation v3 route
+
+`config/mcps/_generation-v3.example.yaml` exports the 27-tool contract from
+[Generation #51](https://github.com/flamoris-jp/flamoris-generation-mcp/pull/51),
+exported from commit c967ede801a3878960bf8acffb545acfaf4f4ae1, including five separately named `workflows.v3.*` tools. Schema/annotation fixtures
+preserve every legacy tool. The template is ignored until copied to the existing
+runtime `generation.yaml`; replace that file rather than enabling both templates,
+which would conflict on upstream id and namespace. Restore your own endpoint and
+credential references when replacing it.
+
+Deploy the compatible Generation revision with `FLAMORIS_WORKFLOW_V3_ENABLED=true`
+before switching this catalog. A v3 catalog against an older/disabled upstream
+blocks forwarding before a tool call. The legacy catalog continues to work with
+an upgraded upstream but does not expose the new tools. No startup connection,
+workflow registration, smoke, model selection or runtime activation is added.
+
+Generation remains the sole version registry, verifier, JobStore and asset owner.
+Use its exact id/version/digest and opaque built workflow handles; the Hub forwards
+readiness, revocation, errors and unknown submission results unchanged and never
+replays a verification/generation call. The first profile is one audited Image
+leaf inside pinned pass-through wrappers. Multiple components, other media, real
+GPU smoke and the Studio v3 route remain separate rollout gates. See Generation's
+[execution guide](https://github.com/flamoris-jp/flamoris-generation-mcp/blob/main/docs/IMAGE_V3_EXECUTION.md).
+
 ### Intelligence route
 
 `config/mcps/_intelligence.example.yaml` contains the exact six-tool raw
