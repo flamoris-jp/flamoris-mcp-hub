@@ -105,6 +105,28 @@ leaving an older runtime catalog in place will prevent preview and download.
 The Hub does not authorize individual Studio users; Studio checks ownership on
 every transfer request before forwarding it through the authenticated Hub.
 
+### Intelligence route
+
+`config/mcps/_intelligence.example.yaml` contains the exact six-tool raw
+Intelligence contract exported from `flamoris-intelligence-mcp` commit
+`043b39b064fbedf9ed9a3e9e9eb57c6856efbb5c`, with schema/annotation parity fixtures.
+Copy it to `intelligence.yaml` only after reviewing the actual configured provider
+and prompt/output data flow. Set the deployment endpoint and any authenticated
+proxy credential reference; never copy a token into YAML. Replace the catalog and
+upstream together if the contract changes. Startup/discovery remains offline and
+does not load a model, probe a provider or run inference.
+
+This route shares the Hub's existing trusted client group. It supplies no Studio
+user identity, per-user result ownership, or Agent delegation. Studio's raw editor
+uses its authenticated backend gateway; do not expose Agent sessions through this
+shared token as if it authenticated individual users. Scoped Agent integration
+remains under #25/#28. The Hub forwards raw structured/error results unchanged,
+and never retries an ambiguous inference call.
+
+Upstream discovery with duplicate tool names or a pagination cursor fails closed
+before any call. Update/reconnect a matching full static catalog to recover;
+partial discovery does not prove all configured tools are compatible.
+
 ## Upstream MCP configuration
 
 The Hub uses **one YAML file per MCP** under:
@@ -378,6 +400,11 @@ Do not expose a desktop listener. Existing Streamable HTTP upstreams are unchang
 
 Start with `config/mcps/_desktop.example.yaml`, copy it to a non-underscore YAML name,
 and set `connector_token_env` to a separate random secret of at least 32 characters.
+Generate each connector secret locally with
+`python -c 'import secrets; print(secrets.token_urlsafe(32))'` and configure the
+same value in that desktop application's Windows Credential Manager. Connector
+credentials authenticate Desktop -> Hub; optional `*_MCP_API_KEY` values
+authenticate Hub -> upstream and are separate from the Hub client token.
 This credential is independent of the Hub's client token and is scoped to one logical
 upstream. Enter the same secret through the desktop's Settings (Windows Credential
 Manager). `product_id` must match the application: `flamoris.cutwork`, `flamoris.2d`,
