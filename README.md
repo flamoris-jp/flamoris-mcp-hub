@@ -399,3 +399,15 @@ authorization headers, bad hosts, unknown IDs and missing credentials are reject
 
 Deployment to a live Hub and physical Windows UI acceptance are separate from source
 integration. No production secrets or deployment-specific paths are supplied here.
+
+
+## Generation Workflow rollout
+
+The Generation template includes workflows.verify and version/digest/require_ready
+build preconditions. It is exported from the Generation MCP protocol; the fixture
+records exact schemas and annotations. Update the deployed catalog together with
+Generation during a maintenance window: pause ingress, drain/reconcile work, replace
+the singleton/catalog pair, restart Hub, check parity on a fresh connection, then
+deploy Studio and reopen. Mixed schemas reject the entire connection, even health.
+Roll back the matching pair with compatible Studio/DB and persistence; preserve data.
+Hub forwards outcomes unchanged and never retries unknown submissions or certifies ready.

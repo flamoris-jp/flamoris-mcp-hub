@@ -28,6 +28,17 @@ def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path, 
         "properties": {
             "template": {"title": "Template", "type": "string"},
             "parameters": {"additionalProperties": True, "title": "Parameters", "type": "object"},
+            "definition_version": {
+                "anyOf": [{"type": "integer"}, {"type": "null"}],
+                "default": None,
+                "title": "Definition Version",
+            },
+            "definition_digest": {
+                "anyOf": [{"type": "string"}, {"type": "null"}],
+                "default": None,
+                "title": "Definition Digest",
+            },
+            "require_ready": {"default": False, "title": "Require Ready", "type": "boolean"},
         },
         "required": ["template", "parameters"],
         "title": "build_workflowArguments",

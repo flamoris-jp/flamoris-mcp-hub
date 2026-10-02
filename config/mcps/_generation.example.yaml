@@ -1,16 +1,9 @@
-# Generation MCP catalog template.
-# Copy this file to config/mcps/generation.yaml and set the URL for your deployment.
-# Files beginning with "_" are ignored by the Hub.
+# Exact Generation catalog; update the deployed catalog in the same maintenance window.
 id: generation
 namespace: generation
 enabled: true
 transport: streamable-http
 url: https://generation.example.com/mcp
-# Optional bearer-token authentication. Uncomment only when the upstream
-# deployment requires it, and keep the actual secret in .env.
-# api_key_env: GENERATION_MCP_API_KEY
-# api_key_header: Authorization
-# api_key_prefix: 'Bearer '
 tools:
 - name: system.health
   annotations:
@@ -19,9 +12,9 @@ tools:
     openWorldHint: false
   description: Check the Generation MCP process and provider availability.
   input_schema:
+    type: object
     properties: {}
     title: healthArguments
-    type: object
 - name: capabilities.list
   annotations:
     readOnlyHint: true
@@ -29,9 +22,9 @@ tools:
     openWorldHint: false
   description: List provider-independent generation capabilities.
   input_schema:
+    type: object
     properties: {}
     title: list_capabilitiesArguments
-    type: object
 - name: capabilities.get
   annotations:
     readOnlyHint: true
@@ -39,6 +32,7 @@ tools:
     openWorldHint: false
   description: Inspect one generation capability.
   input_schema:
+    type: object
     properties:
       capability_id:
         title: Capability Id
@@ -46,7 +40,6 @@ tools:
     required:
     - capability_id
     title: get_capabilityArguments
-    type: object
 - name: models.list
   annotations:
     readOnlyHint: true
@@ -54,6 +47,7 @@ tools:
     openWorldHint: false
   description: List installed generation models, optionally filtered by kind.
   input_schema:
+    type: object
     properties:
       kind:
         anyOf:
@@ -72,7 +66,6 @@ tools:
         default: null
         title: Kind
     title: list_modelsArguments
-    type: object
 - name: models.get
   annotations:
     readOnlyHint: true
@@ -80,6 +73,7 @@ tools:
     openWorldHint: false
   description: Inspect one installed generation model.
   input_schema:
+    type: object
     properties:
       model_id:
         title: Model Id
@@ -87,23 +81,24 @@ tools:
     required:
     - model_id
     title: get_modelArguments
-    type: object
 - name: workflows.list
   annotations:
     readOnlyHint: true
     destructiveHint: false
     openWorldHint: false
-  description: List generation workflow templates and known workflow IDs.
+  description: List graph-free descriptors with Generation-computed exact-identity
+    readiness.
   input_schema:
+    type: object
     properties: {}
     title: list_workflowsArguments
-    type: object
 - name: workflows.register
   annotations:
     readOnlyHint: false
     destructiveHint: true
     openWorldHint: false
-  description: Validate, persist, and immediately activate a trusted generation workflow definition.
+  description: Statically validate and durably activate a trusted candidate; registration
+    does not confer production readiness.
   input_schema:
     type: object
     properties:
@@ -119,7 +114,8 @@ tools:
     readOnlyHint: false
     destructiveHint: false
     openWorldHint: false
-  description: Build a validated generation workflow from a built-in template or trusted definition.
+  description: Build a validated generation workflow from a built-in template or trusted
+    definition.
   input_schema:
     type: object
     properties:
@@ -130,10 +126,55 @@ tools:
         additionalProperties: true
         title: Parameters
         type: object
+      definition_version:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        title: Definition Version
+      definition_digest:
+        anyOf:
+        - type: string
+        - type: 'null'
+        default: null
+        title: Definition Digest
+      require_ready:
+        default: false
+        title: Require Ready
+        type: boolean
     required:
     - template
     - parameters
     title: build_workflowArguments
+- name: workflows.verify
+  description: Admit bounded automatic verification through the normal Generation
+    job authority. Poll jobs.status/result; never replay uncertain work.
+  annotations:
+    readOnlyHint: false
+    destructiveHint: true
+    openWorldHint: false
+  input_schema:
+    type: object
+    properties:
+      workflow_id:
+        title: Workflow Id
+        type: string
+      definition_version:
+        title: Definition Version
+        type: integer
+      definition_digest:
+        title: Definition Digest
+        type: string
+      parameters:
+        additionalProperties: true
+        title: Parameters
+        type: object
+    required:
+    - workflow_id
+    - definition_version
+    - definition_digest
+    - parameters
+    title: verify_workflowArguments
 - name: workflows.save
   annotations:
     readOnlyHint: false
@@ -141,6 +182,7 @@ tools:
     openWorldHint: false
   description: Persist a generation workflow recipe.
   input_schema:
+    type: object
     properties:
       workflow_id:
         title: Workflow Id
@@ -148,7 +190,6 @@ tools:
     required:
     - workflow_id
     title: save_workflowArguments
-    type: object
 - name: jobs.submit
   annotations:
     readOnlyHint: false
@@ -156,6 +197,7 @@ tools:
     openWorldHint: false
   description: Submit one generation workflow.
   input_schema:
+    type: object
     properties:
       workflow_id:
         title: Workflow Id
@@ -163,7 +205,6 @@ tools:
     required:
     - workflow_id
     title: submit_jobArguments
-    type: object
 - name: jobs.status
   annotations:
     readOnlyHint: false
@@ -171,6 +212,7 @@ tools:
     openWorldHint: false
   description: Poll the status of a generation job.
   input_schema:
+    type: object
     properties:
       job_id:
         title: Job Id
@@ -178,7 +220,6 @@ tools:
     required:
     - job_id
     title: job_statusArguments
-    type: object
 - name: jobs.result
   annotations:
     readOnlyHint: false
@@ -186,6 +227,7 @@ tools:
     openWorldHint: false
   description: Get result metadata for a generation job.
   input_schema:
+    type: object
     properties:
       job_id:
         title: Job Id
@@ -193,7 +235,6 @@ tools:
     required:
     - job_id
     title: job_resultArguments
-    type: object
 - name: jobs.cancel
   annotations:
     readOnlyHint: false
@@ -201,6 +242,7 @@ tools:
     openWorldHint: false
   description: Request cancellation of a generation job.
   input_schema:
+    type: object
     properties:
       job_id:
         title: Job Id
@@ -208,7 +250,6 @@ tools:
     required:
     - job_id
     title: cancel_jobArguments
-    type: object
 - name: assets.list
   annotations:
     readOnlyHint: false
@@ -216,6 +257,7 @@ tools:
     openWorldHint: false
   description: List generated asset metadata for a completed job.
   input_schema:
+    type: object
     properties:
       job_id:
         title: Job Id
@@ -223,7 +265,6 @@ tools:
     required:
     - job_id
     title: list_assetsArguments
-    type: object
 - name: assets.get
   annotations:
     readOnlyHint: false
@@ -231,6 +272,7 @@ tools:
     openWorldHint: false
   description: Return one generated asset as MCP-native media content.
   input_schema:
+    type: object
     properties:
       asset_id:
         title: Asset Id
@@ -238,14 +280,15 @@ tools:
     required:
     - asset_id
     title: get_assetArguments
-    type: object
 - name: assets.prepare
   annotations:
     readOnlyHint: false
     destructiveHint: false
     openWorldHint: false
-  description: Materialize one asset for bounded transfer; return immutable content digest.
+  description: Materialize one asset for bounded transfer; return immutable content
+    digest.
   input_schema:
+    type: object
     properties:
       asset_id:
         title: Asset Id
@@ -253,7 +296,6 @@ tools:
     required:
     - asset_id
     title: prepare_assetArguments
-    type: object
 - name: assets.read
   annotations:
     readOnlyHint: true
@@ -261,6 +303,7 @@ tools:
     openWorldHint: false
   description: Read at most 256 KiB from a prepared asset at a retryable byte offset.
   input_schema:
+    type: object
     properties:
       asset_id:
         title: Asset Id
@@ -280,7 +323,6 @@ tools:
     - sha256
     - offset
     title: read_assetArguments
-    type: object
 - name: assets.delete
   annotations:
     readOnlyHint: false
@@ -288,6 +330,7 @@ tools:
     openWorldHint: false
   description: Delete one Hub-managed generated asset (not provider originals).
   input_schema:
+    type: object
     properties:
       asset_id:
         title: Asset Id
@@ -295,7 +338,6 @@ tools:
     required:
     - asset_id
     title: delete_assetArguments
-    type: object
 - name: inputs.create
   annotations:
     readOnlyHint: false
@@ -303,6 +345,7 @@ tools:
     openWorldHint: false
   description: Snapshot a generated image/audio asset as an immutable expiring input.
   input_schema:
+    type: object
     properties:
       asset_id:
         title: Asset Id
@@ -310,7 +353,6 @@ tools:
     required:
     - asset_id
     title: create_inputArguments
-    type: object
 - name: inputs.get
   annotations:
     readOnlyHint: true
@@ -318,6 +360,7 @@ tools:
     openWorldHint: false
   description: Inspect managed input metadata; an ID is not a Studio ownership grant.
   input_schema:
+    type: object
     properties:
       input_id:
         title: Input Id
@@ -325,7 +368,6 @@ tools:
     required:
     - input_id
     title: get_inputArguments
-    type: object
 - name: inputs.delete
   annotations:
     readOnlyHint: false
@@ -333,6 +375,7 @@ tools:
     openWorldHint: false
   description: Delete a managed snapshot unless a provider adapter is using it.
   input_schema:
+    type: object
     properties:
       input_id:
         title: Input Id
@@ -340,4 +383,3 @@ tools:
     required:
     - input_id
     title: delete_inputArguments
-    type: object
