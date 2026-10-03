@@ -1,5 +1,6 @@
 # Optional catalog for Generation PR #51; requires FLAMORIS_WORKFLOW_V3_ENABLED=true.
 # Replace generation.yaml; do not load alongside the legacy Generation catalog.
+# Exported from Generation c22dc57d84cb51047b7b64ed4ed6e24b4abce20d (30 tools).
 id: generation
 # Optional trusted per-client context; configure matched Generation verifier first.
 # external_provenance_secret_env: GENERATION_PROVENANCE_SECRET
@@ -498,3 +499,95 @@ tools:
     required:
     - input_id
     title: delete_inputArguments
+- name: inputs.upload.begin
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+  description: Reserve an 8 MiB image upload under a pre-recorded private UUID.
+  input_schema:
+    type: object
+    properties:
+      upload_id:
+        maxLength: 32
+        pattern: ^[a-f0-9]{32}$
+        title: Upload Id
+        type: string
+      mime_type:
+        enum:
+        - image/png
+        - image/jpeg
+        - image/webp
+        title: Mime Type
+        type: string
+      size_bytes:
+        maximum: 8388608
+        minimum: 1
+        title: Size Bytes
+        type: integer
+      sha256:
+        maxLength: 64
+        pattern: ^[a-f0-9]{64}$
+        title: Sha256
+        type: string
+    required:
+    - upload_id
+    - mime_type
+    - size_bytes
+    - sha256
+    title: begin_input_uploadArguments
+- name: inputs.upload.write
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+  description: Write one ordered, digest-checked image chunk of at most 256 KiB.
+  input_schema:
+    type: object
+    properties:
+      upload_id:
+        maxLength: 32
+        pattern: ^[a-f0-9]{32}$
+        title: Upload Id
+        type: string
+      offset:
+        exclusiveMaximum: 8388608
+        minimum: 0
+        title: Offset
+        type: integer
+      data_base64:
+        maxLength: 349528
+        minLength: 1
+        title: Data Base64
+        type: string
+      chunk_sha256:
+        maxLength: 64
+        pattern: ^[a-f0-9]{64}$
+        title: Chunk Sha256
+        type: string
+    required:
+    - upload_id
+    - offset
+    - data_base64
+    - chunk_sha256
+    title: write_input_uploadArguments
+- name: inputs.upload.finish
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: false
+  description: Decode and atomically publish one immutable expiring uploaded image.
+  input_schema:
+    type: object
+    properties:
+      upload_id:
+        maxLength: 32
+        pattern: ^[a-f0-9]{32}$
+        title: Upload Id
+        type: string
+    required:
+    - upload_id
+    title: finish_input_uploadArguments

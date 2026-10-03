@@ -497,5 +497,119 @@
       "destructiveHint": true,
       "openWorldHint": false
     }
+  },
+  "inputs.upload.begin": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "maxLength": 32,
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Upload Id",
+          "type": "string"
+        },
+        "mime_type": {
+          "enum": [
+            "image/png",
+            "image/jpeg",
+            "image/webp"
+          ],
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "size_bytes": {
+          "maximum": 8388608,
+          "minimum": 1,
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "sha256": {
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "upload_id",
+        "mime_type",
+        "size_bytes",
+        "sha256"
+      ],
+      "title": "begin_input_uploadArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  "inputs.upload.write": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "maxLength": 32,
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Upload Id",
+          "type": "string"
+        },
+        "offset": {
+          "exclusiveMaximum": 8388608,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "data_base64": {
+          "maxLength": 349528,
+          "minLength": 1,
+          "title": "Data Base64",
+          "type": "string"
+        },
+        "chunk_sha256": {
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Chunk Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "upload_id",
+        "offset",
+        "data_base64",
+        "chunk_sha256"
+      ],
+      "title": "write_input_uploadArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  "inputs.upload.finish": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "maxLength": 32,
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Upload Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "upload_id"
+      ],
+      "title": "finish_input_uploadArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
   }
 }

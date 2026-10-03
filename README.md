@@ -145,9 +145,10 @@ fresh-connection parity receipts and rollback acceptance, follow
 [Generation paired rollout](docs/GENERATION_ROLLOUT.md). The explicit checker is
 read-only and does not replace Generation-owned real-runtime verification.
 
-`config/mcps/_generation-v3.example.yaml` exports the 27-tool contract from
-[Generation #51](https://github.com/flamoris-jp/flamoris-generation-mcp/pull/51),
-exported from commit c967ede801a3878960bf8acffb545acfaf4f4ae1, including five separately named `workflows.v3.*` tools. Schema/annotation fixtures
+`config/mcps/_generation-v3.example.yaml` exports the 30-tool contract from
+[Generation #65](https://github.com/flamoris-jp/flamoris-generation-mcp/pull/65),
+exported from commit c22dc57d84cb51047b7b64ed4ed6e24b4abce20d, including three
+`inputs.upload.*` tools and five separately named `workflows.v3.*` tools. Schema/annotation fixtures
 preserve every legacy tool. The template is ignored until copied to the existing
 runtime `generation.yaml`; replace that file rather than enabling both templates,
 which would conflict on upstream id and namespace. Restore your own endpoint and
