@@ -65,10 +65,20 @@ class UpstreamConfig(BaseModel):
     api_key_env: str | None = None
     api_key_header: str = "Authorization"
     api_key_prefix: str = "Bearer "
+    external_provenance_secret_env: str | None = None
     tools: list[ToolConfig] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def validate_config(self) -> UpstreamConfig:
+        if self.external_provenance_secret_env is not None:
+            import re
+
+            if (
+                self.namespace != "generation"
+                or self.transport != "streamable-http"
+                or not re.fullmatch(r"[A-Z][A-Z0-9_]{0,127}", self.external_provenance_secret_env)
+            ):
+                raise ValueError("external provenance is restricted to the Generation HTTP route")
         if self.api_key_env is not None and not self.api_key_env.strip():
             raise ValueError("api_key_env must be a non-empty environment variable name")
 

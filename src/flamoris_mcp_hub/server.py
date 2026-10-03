@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hmac
 import json
 import logging
 import os
@@ -25,7 +26,7 @@ from mcp.types import (
 )
 from starlette.types import Receive, Scope, Send
 
-from .auth import BearerAuth, client_token
+from .auth import IDENTITY_SCOPE_KEY, BearerAuth, ExternalIdentity, client_token, configured_clients
 from .config import env_file
 from .reverse import DesktopGateway
 from .runtime import start_registry
@@ -109,7 +110,12 @@ async def on_call_tool(
         return error_result(f"Invalid arguments for {params.name}: {exc.message}")
 
     try:
-        return await registry.call_public_tool(params.name, arguments)
+        request = getattr(ctx, "request", None)
+        identity = request.scope.get(IDENTITY_SCOPE_KEY) if request is not None else None
+        if not isinstance(identity, ExternalIdentity):
+            identity = None
+        # Public arguments, headers and caller-supplied _meta are never identity sources.
+        return await registry.call_public_tool(params.name, arguments, identity=identity)
     except (ConnectionError, LookupError) as exc:
         logger.info("Tool %s unavailable: %s", params.name, exc)
         return error_result(str(exc))
@@ -143,11 +149,23 @@ def create_app(*, host: str = "127.0.0.1", mcp_path: str = "/mcp") -> DesktopGat
     # Read mounted configuration before constructing either security boundary.
     load_dotenv(env_file(), override=False)
     token = client_token()  # Fail closed before starting a registry or listener.
+    clients = configured_clients()
     holder = {}
 
     @asynccontextmanager
     async def runtime_lifespan(_server):
         _catalog, registry = start_registry()
+        ingress_credentials = [token, *(credential for credential, _ in clients)]
+        for config in _catalog.configs.values():
+            if config.external_provenance_secret_env is not None:
+                signing_secret = os.environ.get(config.external_provenance_secret_env, "")
+                if any(
+                    hmac.compare_digest(signing_secret, credential)
+                    for credential in ingress_credentials
+                ):
+                    raise ValueError(
+                        "provenance signing secret must be independent of client tokens"
+                    )
         holder["registry"] = registry
         try:
             async with registry.run():
@@ -168,6 +186,7 @@ def create_app(*, host: str = "127.0.0.1", mcp_path: str = "/mcp") -> DesktopGat
             streamable_http_path=mcp_path, host=host, transport_security=security
         ),
         token,
+        clients,
     )
     return DesktopGateway(http, holder, security.allowed_hosts)
 

@@ -1,6 +1,8 @@
 # Optional catalog for Generation PR #51; requires FLAMORIS_WORKFLOW_V3_ENABLED=true.
 # Replace generation.yaml; do not load alongside the legacy Generation catalog.
 id: generation
+# Optional trusted per-client context; configure matched Generation verifier first.
+# external_provenance_secret_env: GENERATION_PROVENANCE_SECRET
 namespace: generation
 enabled: true
 transport: streamable-http

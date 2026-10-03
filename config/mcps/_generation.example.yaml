@@ -1,5 +1,7 @@
 # Exact Generation catalog; update the deployed catalog in the same maintenance window.
 id: generation
+# Optional trusted per-client context; configure matched Generation verifier first.
+# external_provenance_secret_env: GENERATION_PROVENANCE_SECRET
 namespace: generation
 enabled: true
 transport: streamable-http

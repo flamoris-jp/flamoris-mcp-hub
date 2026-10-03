@@ -78,8 +78,11 @@ python -c 'import secrets; print(secrets.token_urlsafe(32))'
 
 The token must be 32-512 Bearer-token characters. Never put it in YAML, URLs,
 source control or logs. Rotate it by changing `.env` and restarting the Hub;
-existing sessions must also send the new token. This is one shared trust group,
-not per-user identity or authorization. Do not share it with untrusted clients.
+existing sessions must also send the new token. This default is one shared trust
+group without per-user identity. Do not share it with untrusted clients. Optional
+individual credential-bound provenance is described in
+[Authenticated external provenance](docs/EXTERNAL_PROVENANCE.md); Studio remains
+the authority for account linking and asset authorization.
 
 Compose publishes to `127.0.0.1` by default. An intentional non-loopback mapping
 requires `FLAMORIS_MCP_HUB_BIND` and container recreation. Use TLS and an
@@ -104,6 +107,21 @@ Studio uses these tools for images above its small native-image threshold, so
 leaving an older runtime catalog in place will prevent preview and download.
 The Hub does not authorize individual Studio users; Studio checks ownership on
 every transfer request before forwarding it through the authenticated Hub.
+
+### MCP image display and download
+
+`generation.assets.get` forwards MCP-native `ImageContent` unchanged. A client
+must explicitly display that returned image using its own supported rendering
+mechanism; returning base64 inside tool output alone does not guarantee a chat
+attachment. For example, a client with an image-emission helper should pass the
+individual image content block to that helper rather than printing its base64
+data. Hub cannot choose or confirm the client application's display behavior.
+
+Large assets use the bounded `generation.assets.prepare` / `generation.assets.read`
+contract. Studio checks the logged-in user's ownership before each chunk and
+serves its own authenticated preview/download. These tools do not return a
+public URL or raw provider/server path. Client UI display and any future MCP
+resource/download endpoint still require independent client acceptance (#8).
 
 ### Optional Generation v3 route
 
