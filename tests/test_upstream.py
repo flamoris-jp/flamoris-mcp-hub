@@ -103,6 +103,8 @@ async def test_lazy_reuse_stale_reconnect_and_non_text_forwarding(fake_transport
     async with hub.run():
         first = await hub.call_public_tool("sample.jobs.submit", {})
         assert isinstance(first.content[0], ImageContent)
+        assert first.content[0].mime_type == "image/png"
+        assert first.content[0].data == "aGVsbG8="
         await hub.call_public_tool("sample.jobs.submit", {})
         assert fake_transport["connections"] == 1
         fake_transport["sessions"][0].stale = True
