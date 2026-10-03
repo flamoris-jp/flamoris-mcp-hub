@@ -1,6 +1,6 @@
 {
-  "source_repository": "flamoris-net/flamoris-lime-manager",
-  "source_commit": "cd673a9ca05b1f879560122d3fce6c3d42e9f21a",
+  "source_repository": "flamoris-jp/flamoris-gpu-node-manager",
+  "source_commit": "db04bda91dad4efc1f260a305a85a8cb10f7f5e1",
   "tools": [
     {
       "name": "runtime.list",
@@ -9,6 +9,10 @@
         "type": "object",
         "properties": {},
         "title": "runtime_listArguments"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -26,6 +30,10 @@
           "runtime_id"
         ],
         "title": "runtime_statusArguments"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -43,6 +51,11 @@
           "runtime_id"
         ],
         "title": "runtime_activateArguments"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -60,6 +73,11 @@
           "runtime_id"
         ],
         "title": "runtime_stopArguments"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -69,6 +87,10 @@
         "type": "object",
         "properties": {},
         "title": "system_statusArguments"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
       }
     }
   ]

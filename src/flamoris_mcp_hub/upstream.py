@@ -13,11 +13,18 @@ from mcp.client.streamable_http import streamable_http_client
 from mcp.types import CallToolResult
 
 from .auth import ExternalIdentity
-from .config import Catalog, UpstreamConfig
+from .config import Catalog, CatalogAnnotations, UpstreamConfig
 from .provenance import ProvenanceSigner
 from .reverse import ReverseConnection
 
 logger = logging.getLogger(__name__)
+
+
+def _tool_annotations(tool: Any) -> dict[str, Any]:
+    annotations = getattr(tool, "annotations", None)
+    raw = annotations.model_dump(by_alias=True, exclude_none=True) if annotations else {}
+    # Apply the same conservative omitted-hint defaults used by static catalogs.
+    return CatalogAnnotations.model_validate(raw).model_dump(by_alias=True, exclude_none=True)
 
 
 def _http_client(*, headers: dict[str, str]) -> httpx2.AsyncClient:
@@ -125,6 +132,16 @@ class LazyConnection:
             if configured.input_schema != actual.input_schema:
                 raise LookupError(
                     f"catalog mismatch: {self.config.id}.{configured.name} input schema changed"
+                )
+            try:
+                annotations = _tool_annotations(actual)
+            except (AttributeError, TypeError, ValueError) as exc:
+                raise LookupError(
+                    f"catalog mismatch: {self.config.id}.{configured.name} invalid annotations"
+                ) from exc
+            if configured.annotations.model_dump(by_alias=True, exclude_none=True) != annotations:
+                raise LookupError(
+                    f"catalog mismatch: {self.config.id}.{configured.name} annotations changed"
                 )
         self.catalog_mismatch = None
 

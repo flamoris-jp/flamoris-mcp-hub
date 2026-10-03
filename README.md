@@ -140,6 +140,11 @@ do not certify that a deployed music provider or model is ready for inference.
 
 ### Optional Generation v3 route
 
+For coordinated Generation/Hub updates, deployment-local catalog refresh,
+fresh-connection parity receipts and rollback acceptance, follow
+[Generation paired rollout](docs/GENERATION_ROLLOUT.md). The explicit checker is
+read-only and does not replace Generation-owned real-runtime verification.
+
 `config/mcps/_generation-v3.example.yaml` exports the 27-tool contract from
 [Generation #51](https://github.com/flamoris-jp/flamoris-generation-mcp/pull/51),
 exported from commit c967ede801a3878960bf8acffb545acfaf4f4ae1, including five separately named `workflows.v3.*` tools. Schema/annotation fixtures
@@ -316,7 +321,8 @@ For each tool call the Hub:
 2. reuses the existing session when it is still usable;
 3. uses a read-only `tools/list` request to detect a stale session;
 4. if no usable session exists, connects to the configured upstream endpoint using the API key resolved from `.env`;
-5. verifies that every configured tool still exists and its input schema matches the upstream catalog;
+5. verifies that every configured tool still exists and its input schema and
+   reviewed annotations match the upstream catalog;
 6. forwards the tool call exactly once.
 
 If the connection cannot be established, the Hub returns a tool error to the caller. The Hub itself remains running and other MCPs are unaffected.
@@ -351,10 +357,10 @@ endpoint. The namespace remains `lime` as a deployment-facing name, while the
 owning public service is
 [`flamoris-gpu-node-manager`](https://github.com/flamoris-jp/flamoris-gpu-node-manager).
 The template stays disabled by its underscore prefix. Its five-tool surface matches
-the current GPU Node Manager MCP contract. The pinned fixture was originally
-exported from the former LIME Manager revision recorded in
-`tests/fixtures/lime-tools.json`; future schema changes should be reviewed and
-repinned deliberately. The usual exact schema check runs before forwarding a call.
+the current GPU Node Manager MCP contract. The pinned fixture records revision
+`db04bda91dad4efc1f260a305a85a8cb10f7f5e1`, including its exported annotations.
+Future schema or annotation changes should be reviewed and repinned deliberately.
+The usual exact contract check runs before forwarding a call.
 
 The upstream currently requires no application Bearer token. Protect its
 endpoint at the deployment boundary; do not fabricate credentials. Container

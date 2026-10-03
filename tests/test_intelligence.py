@@ -48,7 +48,9 @@ async def test_inference_arguments_results_and_errors_forward_unchanged(
 ):
     configured = catalog(tmp_path)
     fake_transport["tools"] = [
-        SimpleNamespace(name=t.name, input_schema=t.input_schema)
+        SimpleNamespace(
+            name=t.name, input_schema=t.input_schema, annotations=t.annotations.to_mcp()
+        )
         for t in configured.configs["intelligence"].tools
     ]
     original = FakeSession.call_tool
@@ -81,7 +83,9 @@ async def test_inference_arguments_results_and_errors_forward_unchanged(
 async def test_ambiguous_catalog_blocks_dispatch_then_recovers(tmp_path, fake_transport, mode):
     configured = catalog(tmp_path)
     tools = [
-        SimpleNamespace(name=t.name, input_schema=t.input_schema)
+        SimpleNamespace(
+            name=t.name, input_schema=t.input_schema, annotations=t.annotations.to_mcp()
+        )
         for t in configured.configs["intelligence"].tools
     ]
     fake_transport["tools"] = tools + [tools[0]] if mode == "duplicate" else tools
