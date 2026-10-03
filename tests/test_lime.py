@@ -4,11 +4,11 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from mcp.types import CallToolResult, TextContent
+from mcp.types import CallToolResult, TextContent, ToolAnnotations
 
 from flamoris_mcp_hub.config import Catalog, load_upstreams
 from flamoris_mcp_hub.server import on_list_tools
-from flamoris_mcp_hub.upstream import UpstreamRegistry
+from flamoris_mcp_hub.upstream import UpstreamRegistry, _tool_annotations
 
 ROOT = Path(__file__).parents[1]
 FIXTURE = json.loads((ROOT / "tests/fixtures/lime-tools.json").read_text())
@@ -29,9 +29,16 @@ def test_lime_catalog_matches_pinned_upstream(tmp_path):
         "lime.runtime.stop",
         "lime.system.status",
     }
-    assert [
-        t.model_dump(exclude={"annotations"}) for t in configs.configs["lime"].tools
-    ] == FIXTURE["tools"]
+    for configured, exported in zip(configs.configs["lime"].tools, FIXTURE["tools"], strict=True):
+        assert configured.model_dump(exclude={"annotations"}) == {
+            key: value for key, value in exported.items() if key != "annotations"
+        }
+        actual = SimpleNamespace(
+            annotations=ToolAnnotations.model_validate(exported["annotations"])
+        )
+        assert configured.annotations.model_dump(by_alias=True, exclude_none=True) == (
+            _tool_annotations(actual)
+        )
     assert configs.configs["lime"].headers() == {}
 
 
@@ -54,7 +61,12 @@ async def test_lime_lazy_schema_gate_and_no_replay(tmp_path, monkeypatch, mismat
             pass
 
         async def list_tools(self):
-            tools = [SimpleNamespace(**t) for t in FIXTURE["tools"]]
+            tools = [
+                SimpleNamespace(
+                    **(t | {"annotations": ToolAnnotations.model_validate(t["annotations"])})
+                )
+                for t in FIXTURE["tools"]
+            ]
             if mismatch:
                 tools[2].input_schema = {"type": "object"}
             return SimpleNamespace(tools=tools)

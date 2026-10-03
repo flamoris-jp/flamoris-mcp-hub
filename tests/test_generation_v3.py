@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 import yaml
-from mcp.types import CallToolResult
+from mcp.types import CallToolResult, ToolAnnotations
 from test_upstream import FakeSession
 from test_upstream import fake_transport as upstream_transport
 
@@ -25,7 +25,14 @@ def catalog(tmp_path, *, v3=True):
 
 
 def tools(exported):
-    return [SimpleNamespace(name=k, input_schema=v["input_schema"]) for k, v in exported.items()]
+    return [
+        SimpleNamespace(
+            name=k,
+            input_schema=v["input_schema"],
+            annotations=ToolAnnotations.model_validate(v["annotations"]),
+        )
+        for k, v in exported.items()
+    ]
 
 
 async def test_exact_opt_in_catalog_offline_discovery_and_legacy_parity(tmp_path, fake_transport):

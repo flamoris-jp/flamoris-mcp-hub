@@ -25,7 +25,9 @@ def generation_catalog(tmp_path, state):
     )
     catalog = Catalog(load_upstreams(tmp_path))
     state["tools"] = [
-        SimpleNamespace(name=tool.name, input_schema=tool.input_schema)
+        SimpleNamespace(
+            name=tool.name, input_schema=tool.input_schema, annotations=tool.annotations.to_mcp()
+        )
         for tool in catalog.configs["generation"].tools
     ]
     return catalog

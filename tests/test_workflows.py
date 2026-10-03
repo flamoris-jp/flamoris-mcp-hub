@@ -36,7 +36,9 @@ async def test_opaque_verification_forwarding_no_replay(
     )
     catalog = Catalog(load_upstreams(tmp_path))
     fake_transport["tools"] = [
-        SimpleNamespace(name=t.name, input_schema=t.input_schema)
+        SimpleNamespace(
+            name=t.name, input_schema=t.input_schema, annotations=t.annotations.to_mcp()
+        )
         for t in catalog.configs["generation"].tools
     ]
     original = FakeSession.call_tool
@@ -84,7 +86,9 @@ async def test_old_catalog_blocks_unchanged_health_before_forward(tmp_path, fake
     )
     catalog = Catalog(load_upstreams(tmp_path))
     fake_transport["tools"] = [
-        SimpleNamespace(name=t.name, input_schema=t.input_schema)
+        SimpleNamespace(
+            name=t.name, input_schema=t.input_schema, annotations=t.annotations.to_mcp()
+        )
         for t in catalog.configs["generation"].tools
     ]
     build = next(t for t in fake_transport["tools"] if t.name == "workflows.build")

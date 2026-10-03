@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import anyio
 import pytest
-from mcp.types import CallToolResult, ImageContent
+from mcp.types import CallToolResult, ImageContent, ToolAnnotations
 
 from flamoris_mcp_hub.config import Catalog, ToolConfig, UpstreamConfig, load_upstreams
 from flamoris_mcp_hub.upstream import UpstreamRegistry
@@ -121,7 +121,10 @@ async def test_managed_inputs_route_through_generation_catalog(tmp_path, fake_tr
     catalog = Catalog(load_upstreams(tmp_path))
     config = catalog.configs["generation"]
     fake_transport["tools"] = [
-        SimpleNamespace(name=tool.name, input_schema=tool.input_schema) for tool in config.tools
+        SimpleNamespace(
+            name=tool.name, input_schema=tool.input_schema, annotations=tool.annotations.to_mcp()
+        )
+        for tool in config.tools
     ]
     hub = UpstreamRegistry(catalog)
     assert hub.status()[0]["connected"] is False
@@ -152,6 +155,30 @@ async def test_catalog_mismatch_blocks_call_and_reports_diagnostics(fake_transpo
             await hub.call_public_tool("sample.jobs.submit", {})
         assert hub.status()[0]["catalog_mismatch"]
     assert fake_transport["calls"] == 0
+
+
+@pytest.mark.parametrize("malformed", [False, True])
+async def test_annotation_drift_blocks_dispatch_then_recovers(fake_transport, malformed):
+    wrong = SimpleNamespace(model_dump=lambda **kw: {"readOnlyHint": "secret-value"})
+    fake_transport["tools"] = [
+        SimpleNamespace(
+            name="jobs.submit",
+            input_schema=SCHEMA,
+            annotations=wrong if malformed else ToolAnnotations(read_only_hint=True),
+        )
+    ]
+    base = next(iter(registry().catalog.configs.values()))
+    config = base.model_copy(update={"id": "generation", "namespace": "generation"})
+    hub = UpstreamRegistry(Catalog([config]))
+    async with hub.run():
+        with pytest.raises(LookupError, match="annotations"):
+            await hub.call_public_tool("generation.jobs.submit", {})
+        assert fake_transport["calls"] == 0
+        assert "secret-value" not in hub.status()[0]["catalog_mismatch"]
+        fake_transport["tools"][0].annotations = None
+        await hub.call_public_tool("generation.jobs.submit", {})
+        assert hub.status()[0]["catalog_mismatch"] is None
+    assert fake_transport["calls"] == 1
 
 
 @pytest.mark.asyncio
