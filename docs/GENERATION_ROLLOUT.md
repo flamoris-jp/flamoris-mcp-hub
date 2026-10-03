@@ -10,6 +10,8 @@ owns uploads, decoding, expiry, storage and provider leases. Hub forwards opaque
 arguments/results once and keeps no upload or user ownership state. Studio must
 deploy its owner-scoped upload route separately. This catalog change does not
 enable a qualified img2img Workflow or its independent retention readiness gate.
+Signed calls retain the existing 256 KiB canonical-envelope bound. Studio uploads
+use 128 KiB raw chunks so base64 and the signed context fit that bound.
 Generation remains the workflow, verification, readiness, JobStore and asset
 authority. Hub supplies schema-compatible discovery and forwarding only.
 

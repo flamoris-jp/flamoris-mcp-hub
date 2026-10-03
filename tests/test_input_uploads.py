@@ -9,7 +9,9 @@ from mcp.types import CallToolResult
 from test_upstream import FakeSession
 from test_upstream import fake_transport as upstream_transport
 
+from flamoris_mcp_hub.auth import ExternalIdentity
 from flamoris_mcp_hub.config import Catalog, load_upstreams
+from flamoris_mcp_hub.provenance import META_KEY
 from flamoris_mcp_hub.upstream import UpstreamRegistry
 
 fake_transport = upstream_transport
@@ -100,3 +102,55 @@ async def test_upload_schema_drift_blocks_before_private_bytes_forward(tmp_path,
                 "generation.inputs.upload.write", {"data_base64": "private payload"}
             )
     assert fake_transport["calls"] == 0
+
+
+async def test_studio_sized_upload_chunk_fits_real_signed_hub_context(
+    tmp_path, fake_transport, monkeypatch
+):
+    template = (ROOT / "config/mcps/_generation.example.yaml").read_text()
+    (tmp_path / "generation.yaml").write_text(
+        template + "\nexternal_provenance_secret_env: TEST_UPLOAD_SIGNING_SECRET\n"
+    )
+    monkeypatch.setenv(
+        "TEST_UPLOAD_SIGNING_SECRET",
+        "independent-test-upload-signing-secret-at-least-32-characters",
+    )
+    catalog = Catalog(load_upstreams(tmp_path))
+    fake_transport["tools"] = [
+        SimpleNamespace(
+            name=t.name, input_schema=t.input_schema, annotations=t.annotations.to_mcp()
+        )
+        for t in catalog.configs["generation"].tools
+    ]
+    receipts = []
+    expected = CallToolResult(
+        content=[], structured_content={"upload_id": "a" * 32, "offset": 128 * 1024}
+    )
+    original = FakeSession.call_tool
+
+    async def call(self, name, arguments, *, meta):
+        await original(self, name, arguments)
+        receipts.append(meta)
+        return expected
+
+    monkeypatch.setattr(FakeSession, "call_tool", call)
+    data = b"x" * (128 * 1024)
+    args = dict(
+        upload_id="a" * 32,
+        offset=0,
+        data_base64=base64.b64encode(data).decode(),
+        chunk_sha256=hashlib.sha256(data).hexdigest(),
+    )
+    async with UpstreamRegistry(catalog).run() as hub:
+        assert (
+            await hub.call_public_tool(
+                "generation.inputs.upload.write",
+                args,
+                identity=ExternalIdentity("hub.example", "studio-group"),
+            )
+            is expected
+        )
+    assert receipts[0][META_KEY]["subject"] == "studio-group"
+    assert len(receipts[0][META_KEY]["signature"]) == 64
+    assert "data_base64" not in json.dumps(receipts[0])
+    assert fake_transport["requests"] == [("inputs.upload.write", args)]
