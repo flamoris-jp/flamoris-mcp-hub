@@ -123,6 +123,21 @@ serves its own authenticated preview/download. These tools do not return a
 public URL or raw provider/server path. Client UI display and any future MCP
 resource/download endpoint still require independent client acceptance (#8).
 
+### Native Music results
+
+Native Music generation and transcription use the existing `workflows.build`,
+`jobs.submit/status/result` and bounded `assets.prepare/read` tools. The build
+parameters remain opaque to the Hub; the Generation provider validates them.
+No new music-specific Hub route or tool schema is required. Generation owns
+provider admission, cancellation, output validation and all job/asset state.
+
+The Hub forwards multi-asset results, optional ABC-generation errors, media kinds,
+MIME types and transfer digests unchanged, including WAV, MIDI (`audio/midi`), ABC
+(`text/vnd.abc`) and JSON annotations. Clients must retrieve the asset selected
+from the returned manifest rather than assuming the first output is playable
+audio. Studio checks user ownership before each transfer. These transport tests
+do not certify that a deployed music provider or model is ready for inference.
+
 ### Optional Generation v3 route
 
 `config/mcps/_generation-v3.example.yaml` exports the 27-tool contract from
