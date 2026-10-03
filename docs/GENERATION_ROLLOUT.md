@@ -1,8 +1,17 @@
 # Generation / Hub paired rollout acceptance
 
-The source catalogs already cover legacy Workflow readiness (22 tools) and the
-optional Image v3 profile (27 tools). Updating a tracked underscore template does
+The source catalogs cover legacy Workflow readiness and bounded image uploads
+(25 tools), and the optional Image v3 profile (30 tools). Updating a tracked underscore template does
 not update the deployment-local `generation.yaml` or the running Hub process.
+
+Both profiles include `inputs.upload.begin/write/finish`, with exact private UUID,
+PNG/JPEG/WebP MIME, 8 MiB declaration, 256 KiB chunk and SHA-256 schemas. Generation
+owns uploads, decoding, expiry, storage and provider leases. Hub forwards opaque
+arguments/results once and keeps no upload or user ownership state. Studio must
+deploy its owner-scoped upload route separately. This catalog change does not
+enable a qualified img2img Workflow or its independent retention readiness gate.
+Signed calls retain the existing 256 KiB canonical-envelope bound. Studio uploads
+use 128 KiB raw chunks so base64 and the signed context fit that bound.
 Generation remains the workflow, verification, readiness, JobStore and asset
 authority. Hub supplies schema-compatible discovery and forwarding only.
 
