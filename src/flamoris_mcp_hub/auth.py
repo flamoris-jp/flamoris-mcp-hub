@@ -34,6 +34,13 @@ class ExternalIdentity:
             raise ValueError("invalid external identity")
 
 
+@dataclass
+class _SessionBinding:
+    credential: bytes
+    idle_until: float
+    active: int = 0
+
+
 def _token(value: str, name: str) -> str:
     if not re.fullmatch(r"[A-Za-z0-9._~+/-]{32,512}=*", value) or len(value) > 512:
         raise ValueError(f"{name} must contain a 32-512 character Bearer token")
@@ -96,7 +103,7 @@ class BearerAuth:
             self._credentials.append((digest, identity))
         # Bound to the actual authenticated credential, including legacy anonymous clients.
         # Capacity fails closed; never evict a live binding to admit a new session.
-        self._sessions: dict[bytes, tuple[bytes, float]] = {}
+        self._sessions: dict[bytes, _SessionBinding] = {}
         self._pending_sessions = 0
 
     async def _reject(self, scope, receive, send, status=401):
@@ -129,8 +136,11 @@ class BearerAuth:
                 return
             now = time.monotonic()
             self._sessions = {
-                key: binding for key, binding in self._sessions.items() if binding[1] > now
+                key: binding
+                for key, binding in self._sessions.items()
+                if binding.active > 0 or binding.idle_until > now
             }
+            held_binding = None
             session_values = [
                 v for k, v in scope.get("headers", []) if k.lower() == b"mcp-session-id"
             ]
@@ -141,11 +151,12 @@ class BearerAuth:
                     session is None
                     or not 1 <= len(session) <= 256
                     or binding is None
-                    or not hmac.compare_digest(binding[0], supplied_digest)
+                    or not hmac.compare_digest(binding.credential, supplied_digest)
                 ):
                     await self._reject(scope, receive, send, 403)
                     return
-                self._sessions[session] = (supplied_digest, now + SESSION_IDLE_SECONDS)
+                held_binding = binding
+                held_binding.active += 1
             elif len(self._sessions) + self._pending_sessions >= MAX_SESSIONS:
                 await self._reject(scope, receive, send, 503)
                 return
@@ -156,6 +167,7 @@ class BearerAuth:
             trusted_scope[IDENTITY_SCOPE_KEY] = identity
 
             async def bound_send(message):
+                nonlocal held_binding
                 if message["type"] == "http.response.start":
                     ids = [
                         v for k, v in message.get("headers", []) if k.lower() == b"mcp-session-id"
@@ -163,15 +175,21 @@ class BearerAuth:
                     if len(ids) == 1 and 1 <= len(ids[0]) <= 256:
                         current = self._sessions.get(ids[0])
                         if current is not None and not hmac.compare_digest(
-                            current[0], supplied_digest
+                            current.credential, supplied_digest
                         ):
+                            raise RuntimeError("MCP session binding conflict")
+                        if session is not None and ids[0] != session:
                             raise RuntimeError("MCP session binding conflict")
                         if current is None and len(self._sessions) >= MAX_SESSIONS:
                             raise RuntimeError("MCP session binding capacity exhausted")
-                        self._sessions[ids[0]] = (
-                            supplied_digest,
-                            time.monotonic() + SESSION_IDLE_SECONDS,
-                        )
+                        if current is None:
+                            current = _SessionBinding(
+                                supplied_digest, time.monotonic() + SESSION_IDLE_SECONDS
+                            )
+                            self._sessions[ids[0]] = current
+                        if held_binding is None:
+                            held_binding = current
+                            held_binding.active += 1
                     if scope.get("method") == "DELETE" and message["status"] < 400:
                         self._sessions.pop(session, None)
                 await send(message)
@@ -179,6 +197,9 @@ class BearerAuth:
             try:
                 await self.app(trusted_scope, receive, bound_send)
             finally:
+                if held_binding is not None:
+                    held_binding.active -= 1
+                    held_binding.idle_until = time.monotonic() + SESSION_IDLE_SECONDS
                 if creating:
                     self._pending_sessions -= 1
             return

@@ -35,8 +35,9 @@ human names. Duplicate subjects, credentials or environment references fail
 startup. An unknown credential fails authentication. A session established by
 one credential cannot be reused by another, including by the anonymous token.
 The binding table allows at most 10,000 sessions and fails closed at capacity;
-it does not discard live bindings to admit an attacker. Idle bindings expire
-after 30 minutes, matching the SDK's default idle-session limit.
+it does not discard live bindings to admit an attacker. Bindings stay live while
+an authenticated HTTP request, including GET/SSE, is in flight. The 30-minute idle
+deadline starts after request completion, matching the SDK's default idle limit.
 
 No incoming HTTP identity header, tool argument or caller `_meta` is trusted or
 forwarded as provenance. Only the credential selected by Hub's middleware can
@@ -96,7 +97,9 @@ json.dumps(
 ).encode("ascii")
 ```
 
-Canonical requests are bounded to 4 MiB. Generation verifies the expected issuer,
+Signed canonical requests are bounded to 256 KiB, including escaped argument
+strings and envelope fields; oversized calls fail before downstream dispatch.
+Generation verifies the expected issuer,
 strict fields, signature, ±30 second freshness and nonce before tool effects.
 Its bounded durable replay journal retains live nonces for 61 seconds across
 restarts, has a 4,096-entry capacity, and commits each nonce before effects.

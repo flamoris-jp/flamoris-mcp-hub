@@ -1,8 +1,10 @@
+import asyncio
 import hashlib
 import hmac
 import json
 from types import SimpleNamespace
 
+import anyio
 import httpx2
 import pytest
 from mcp.types import CallToolRequestParams, CallToolResult
@@ -17,7 +19,7 @@ from flamoris_mcp_hub.auth import (
     configured_clients,
 )
 from flamoris_mcp_hub.config import Catalog, ToolConfig, UpstreamConfig
-from flamoris_mcp_hub.provenance import META_KEY, ProvenanceSigner
+from flamoris_mcp_hub.provenance import MAX_SIGNED_BYTES, META_KEY, ProvenanceSigner
 from flamoris_mcp_hub.server import create_app, on_call_tool
 from flamoris_mcp_hub.upstream import UpstreamRegistry
 
@@ -81,8 +83,11 @@ async def test_identity_and_session_binding_survive_reconnect_and_reject_takeove
     async def downstream(scope, receive, send):
         nonlocal next_session
         identities.append(scope[IDENTITY_SCOPE_KEY])
-        next_session += 1
-        await Response(status_code=204, headers={"Mcp-Session-Id": str(next_session)})(
+        supplied_session = dict(scope["headers"]).get(b"mcp-session-id")
+        if supplied_session is None:
+            next_session += 1
+        response_session = supplied_session.decode() if supplied_session else str(next_session)
+        await Response(status_code=204, headers={"Mcp-Session-Id": response_session})(
             scope, receive, send
         )
 
@@ -187,6 +192,61 @@ def test_shared_generation_canonical_signature_vector(monkeypatch):
     assert envelope["signature"] == (
         "470bfa0724cb50f32b226845940ce132711391ebab0fb5f7a29ec3a2d667b7e8"
     )
+
+
+def test_signature_limit_matches_generation_ingress(monkeypatch):
+    monkeypatch.setenv("SIGNING_KEY", SECRET)
+    with pytest.raises(ValueError, match="too large"):
+        ProvenanceSigner("SIGNING_KEY").metadata(
+            A, "workflows.register", {"text": "a" * MAX_SIGNED_BYTES}
+        )
+
+
+@pytest.mark.parametrize("delete_while_active", [False, True])
+async def test_active_sse_binding_is_not_reaped_and_idle_starts_at_completion(
+    monkeypatch, delete_while_active
+):
+    clock = [0.0]
+    monkeypatch.setattr("flamoris_mcp_hub.auth.time", SimpleNamespace(monotonic=lambda: clock[0]))
+    monkeypatch.setattr("flamoris_mcp_hub.auth.MAX_SESSIONS", 1)
+    entered, release = anyio.Event(), anyio.Event()
+
+    async def downstream(scope, receive, send):
+        if scope["method"] == "GET":
+            await send({"type": "http.response.start", "status": 200, "headers": []})
+            entered.set()
+            await release.wait()
+            await send({"type": "http.response.body", "body": b"", "more_body": False})
+        else:
+            await Response(status_code=204, headers={"Mcp-Session-Id": "known"})(
+                scope, receive, send
+            )
+
+    wrapped = BearerAuth(downstream, TOKEN, [(CLIENT_A, A), (CLIENT_B, B)])
+    headers_a = {"Authorization": "Bearer " + CLIENT_A, "Mcp-Session-Id": "known"}
+    headers_b = {"Authorization": "Bearer " + CLIENT_B, "Mcp-Session-Id": "known"}
+    async with httpx2.AsyncClient(
+        transport=httpx2.ASGITransport(app=wrapped), base_url="http://localhost"
+    ) as client:
+        await client.post("/mcp", headers={"Authorization": "Bearer " + CLIENT_A})
+        ongoing = asyncio.create_task(client.get("/mcp", headers=headers_a))
+        try:
+            await entered.wait()
+            clock[0] = 1801.0
+            assert (await client.post("/mcp", headers=headers_a)).status_code == 204
+            assert (await client.post("/mcp", headers=headers_b)).status_code == 403
+            assert (
+                await client.post("/mcp", headers={"Authorization": "Bearer " + CLIENT_B})
+            ).status_code == 503
+            if delete_while_active:
+                assert (await client.delete("/mcp", headers=headers_a)).status_code == 204
+        finally:
+            release.set()
+            await ongoing
+        if not delete_while_active:
+            clock[0] = 3600.0  # Still inside the idle window measured from SSE completion.
+            assert (await client.delete("/mcp", headers=headers_a)).status_code == 204
+        assert wrapped._sessions == {}
 
 
 async def test_caller_metadata_and_headers_never_override_credential_identity(monkeypatch):

@@ -14,6 +14,7 @@ from mcp.types import RequestParamsMeta
 from .auth import ExternalIdentity, _token
 
 META_KEY = "flamoris.dev/external-provenance"
+MAX_SIGNED_BYTES = 256 * 1024
 
 
 class ProvenanceSigner:
@@ -37,7 +38,7 @@ class ProvenanceSigner:
             ).encode("ascii")
         except (ValueError, TypeError, RecursionError):
             raise ValueError("invalid provenance request") from None
-        if len(canonical) > 4 * 1024 * 1024:
+        if len(canonical) > MAX_SIGNED_BYTES:
             raise ValueError("provenance request is too large")
         envelope["signature"] = hmac.new(self._key, canonical, hashlib.sha256).hexdigest()
         return {META_KEY: envelope}
