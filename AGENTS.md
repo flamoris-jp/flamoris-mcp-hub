@@ -2,13 +2,15 @@
 
 This repository contains the FLAMORIS MCP Hub.
 
-AI agents and human contributors should treat the Hub as a small MCP aggregation and routing boundary. It must not become a second source of truth for the applications and services behind it.
+AI agents and human contributors should treat the Hub as a small external MCP aggregation and routing boundary. Internal Studio, Agent, Runtime and generation-domain callers use non-MCP interfaces. The Hub is not an internal service bus and must not become a second source of truth for upstream applications. Read [AI architecture](https://github.com/flamoris-jp/flamoris-ai/blob/main/docs/ARCHITECTURE.md) and [Hub #36](https://github.com/flamoris-jp/flamoris-mcp-hub/issues/36).
+
+The authorized architecture cleanup retires only the Generation definition/verification/v3 catalogs that were removed upstream and reconciles internal-consumer assumptions. Preserve external routing, lazy connection/discovery, authentication/provenance, errors/media and no replay after uncertain mutation. Controller remains unimplemented; no new namespace or production change is implied.
 
 ## Core principles
 
 1. **Keep the Hub thin**
    - The Hub aggregates MCP capabilities and routes calls.
-   - Do not move application-specific business logic, workflows, project state, or editing state into the Hub.
+   - Do not move application-specific business logic, ExecuteFlow/ComfyWorkFlow execution, project state, or editing state into the Hub.
    - Prefer delegation to the owning upstream MCP server.
 
 2. **Preserve upstream authority**

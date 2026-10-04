@@ -1,35 +1,38 @@
 # Generation / Hub paired rollout acceptance
 
-The source catalogs cover legacy Workflow readiness and bounded image uploads
-(25 tools), and the optional Image v3 profile (30 tools). Updating a tracked underscore template does
-not update the deployment-local `generation.yaml` or the running Hub process.
+The matching source catalog exposes 23 retained external Generation tools.
+Custom definition registration/qualification and the optional Image v3 surface
+have been removed. Built-in/native recipe construction, jobs, assets and bounded
+inputs remain. Updating the tracked underscore template does not update the
+deployment-local `generation.yaml` or the running Hub process.
 
-Both profiles include `inputs.upload.begin/write/finish`, with exact private UUID,
-PNG/JPEG/WebP MIME, 8 MiB declaration, 256 KiB chunk and SHA-256 schemas. Generation
-owns uploads, decoding, expiry, storage and provider leases. Hub forwards opaque
-arguments/results once and keeps no upload or user ownership state. Studio must
-deploy its owner-scoped upload route separately. This catalog change does not
-enable a qualified img2img Workflow or its independent retention readiness gate.
-Signed calls retain the existing 256 KiB canonical-envelope bound. Studio uploads
-use 128 KiB raw chunks so base64 and the signed context fit that bound.
-Generation remains the workflow, verification, readiness, JobStore and asset
-authority. Hub supplies schema-compatible discovery and forwarding only.
+`inputs.upload.begin/write/finish` retain exact private UUID, PNG/JPEG/WebP MIME,
+8 MiB declaration, 256 KiB chunk and SHA-256 schemas. Generation owns uploads,
+decoding, expiry, storage and provider leases. Hub forwards opaque external
+arguments/results once and keeps no upload or product-user ownership state.
+Signed calls retain the 256 KiB canonical-envelope bound; a 128 KiB raw chunk fits
+with base64 and signed context. Studio uses its authenticated non-MCP boundary;
+external client provenance is not Studio authorization.
+
+Generation still owns retained jobs, inputs and assets until a separately scoped
+Controller implementation exists. This cleanup implements no Controller and
+creates no new external namespace. Provider availability and actual inference
+acceptance remain separate from catalog parity.
 
 ## Record the pair before changing it
 
 Use the deployment's private operations records to capture the actually deployed
-Generation and Hub revisions, Generation's v3 enablement, and the mounted runtime
+Generation and Hub revisions and the mounted runtime
 catalog. Save the current `config/mcps/generation.yaml` outside the checkout in the
 deployment's private backup directory. Retain the existing JobStore and asset
 volumes. A rollback target must include JobStore uncertain-submit hardening;
 rolling back to code that releases an ambiguous submission's reservation is not a
 safe recovery plan.
 
-Choose `_generation.example.yaml` for the legacy profile, or
-`_generation-v3.example.yaml` when the deployed Generation has
-`FLAMORIS_WORKFLOW_V3_ENABLED=true`. The v3 catalog requires the compatible enabled
-upstream. Update the two services in one maintenance window and admit no new
-generation or verification work while the pair is being changed.
+Use `_generation.example.yaml` from the same cleanup contract as the deployed
+Generation revision. Remove the retired tools from the deployment-local catalog
+rather than retaining the old v3 profile. Update the two services in one maintenance
+window and admit no new generation work while the pair is being changed.
 
 ## Refresh the runtime catalog without replacing deployment settings
 
@@ -44,7 +47,6 @@ import yaml
 
 runtime_path = Path("config/mcps/generation.yaml")
 template_path = Path("config/mcps/_generation.example.yaml")
-# Use _generation-v3.example.yaml only for the enabled v3 deployment profile.
 runtime = yaml.safe_load(runtime_path.read_text())
 template = yaml.safe_load(template_path.read_text())
 if runtime["id"] != template["id"] or runtime["namespace"] != template["namespace"]:
@@ -59,7 +61,7 @@ deployment procedures. Restart the Hub after refreshing its mounted YAML. For
 the supplied Compose deployment, that command is `docker compose restart
 mcp-hub`. Changes to Compose environment values or the container image require
 the documented recreation/build procedure instead. Hub startup remains offline;
-it never registers a workflow, activates a runtime or runs verification.
+it never constructs ComfyWorkFlow JSON, activates a runtime or runs inference.
 
 HTTP forwarding now compares the reviewed tool annotations as well
 as input schemas before dispatch. Missing annotation hints use the same MCP
@@ -89,9 +91,8 @@ Hub, initializes them, and requests `tools/list` once from each. It makes no
 `tools/call`, verification, submission, runtime activation or readiness mutation.
 It compares every tool name, input schema and annotation against the runtime
 YAML. The Hub comparison includes the selected namespace only, so unrelated
-upstreams may remain configured. The direct upstream comparison requires the
-whole selected profile: an additional v3 surface is reported when checking a
-legacy catalog, even though ordinary legacy forwarding remains compatible.
+upstreams may remain configured. The direct upstream comparison requires the whole retained profile. Missing or
+additional retired tools are a mismatch in this explicit whole-catalog check.
 
 Success exits zero with `status: matched` and matching contract digests for the
 configured, direct and Hub catalogs. Mismatch/error exits one. Pagination,
@@ -107,10 +108,10 @@ credentials, schema bodies or provider payloads. Store receipts in the deploymen
 private operations records alongside the deployed revision evidence.
 
 Catalog parity proves compatibility at the time of these fresh sessions. It does
-not certify provider availability, a real JANKU graph, successful inference,
-workflow readiness, user delegation or production completion. Complete the
-Generation-owned real-runtime verification and exact-identity ready check after
-the pair receipt succeeds; never replay an ambiguous call automatically.
+not certify provider availability, real ComfyWorkFlow execution, successful
+inference, user authorization or production completion. Complete retained
+provider acceptance separately after the pair receipt succeeds; never replay
+an ambiguous call automatically.
 
 ## Roll back and verify the rollback
 

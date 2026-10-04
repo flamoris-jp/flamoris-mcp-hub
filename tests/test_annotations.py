@@ -126,7 +126,6 @@ def test_generation_effects_are_not_misclassified(tmp_path):
     tools = {t.name: t.annotations for t in load_upstreams(tmp_path)[0].tools}
     for name in [
         "workflows.build",
-        "workflows.register",
         "workflows.save",
         "jobs.submit",
         "jobs.status",  # Polling can finalize jobs and persist metadata/retention.
@@ -141,7 +140,6 @@ def test_generation_effects_are_not_misclassified(tmp_path):
         "assets.delete",
         "inputs.delete",
         "jobs.cancel",
-        "workflows.register",
         "workflows.save",
     ]:
         assert tools[name].destructive_hint is True

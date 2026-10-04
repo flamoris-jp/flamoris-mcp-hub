@@ -25,10 +25,8 @@ def test_exported_generation_schema_and_annotation_parity():
         ]
 
 
-@pytest.mark.parametrize(
-    "outcome", ["busy_ready_preserved", "admitted_failed", "runtime_evidence_unavailable", "ready"]
-)
-async def test_opaque_verification_forwarding_no_replay(
+@pytest.mark.parametrize("outcome", ["queued", "completed", "failed", "outcome_unknown"])
+async def test_opaque_generation_forwarding_no_replay(
     tmp_path, fake_transport, monkeypatch, outcome
 ):
     (tmp_path / "generation.yaml").write_text(
@@ -45,30 +43,13 @@ async def test_opaque_verification_forwarding_no_replay(
 
     async def result(self, name, arguments):
         await original(self, name, arguments)
-        return CallToolResult(content=[], structured_content={"verification": {"state": outcome}})
+        return CallToolResult(content=[], structured_content={"job": {"state": outcome}})
 
     monkeypatch.setattr(FakeSession, "call_tool", result)
     calls = [
         ("workflows.build", {"template": "text-to-image", "parameters": {}}),
-        (
-            "workflows.build",
-            {
-                "template": "image",
-                "parameters": {},
-                "definition_version": 2,
-                "definition_digest": "sha256:" + "a" * 64,
-                "require_ready": True,
-            },
-        ),
-        (
-            "workflows.verify",
-            {
-                "workflow_id": "image",
-                "definition_version": 2,
-                "definition_digest": "sha256:" + "a" * 64,
-                "parameters": {},
-            },
-        ),
+        ("workflows.save", {"workflow_id": "opaque-built-recipe"}),
+        ("jobs.submit", {"workflow_id": "opaque-built-recipe"}),
         ("jobs.status", {"job_id": "job"}),
         ("jobs.result", {"job_id": "job"}),
     ]
@@ -76,7 +57,7 @@ async def test_opaque_verification_forwarding_no_replay(
     async with hub.run():
         for name, args in calls:
             received = await hub.call_public_tool("generation." + name, args)
-            assert received.structured_content == {"verification": {"state": outcome}}
+            assert received.structured_content == {"job": {"state": outcome}}
     assert fake_transport["requests"] == calls
 
 

@@ -18,7 +18,7 @@ fake_transport = upstream_transport
 ROOT = Path(__file__).parents[1]
 
 
-@pytest.mark.parametrize("profile", ["generation", "generation-v3"])
+@pytest.mark.parametrize("profile", ["generation"])
 async def test_uploaded_image_contract_and_opaque_forwarding(
     tmp_path, fake_transport, monkeypatch, profile
 ):
@@ -104,7 +104,7 @@ async def test_upload_schema_drift_blocks_before_private_bytes_forward(tmp_path,
     assert fake_transport["calls"] == 0
 
 
-async def test_studio_sized_upload_chunk_fits_real_signed_hub_context(
+async def test_external_upload_chunk_fits_real_signed_hub_context(
     tmp_path, fake_transport, monkeypatch
 ):
     template = (ROOT / "config/mcps/_generation.example.yaml").read_text()
@@ -146,11 +146,11 @@ async def test_studio_sized_upload_chunk_fits_real_signed_hub_context(
             await hub.call_public_tool(
                 "generation.inputs.upload.write",
                 args,
-                identity=ExternalIdentity("hub.example", "studio-group"),
+                identity=ExternalIdentity("hub.example", "external-group"),
             )
             is expected
         )
-    assert receipts[0][META_KEY]["subject"] == "studio-group"
+    assert receipts[0][META_KEY]["subject"] == "external-group"
     assert len(receipts[0][META_KEY]["signature"]) == 64
     assert "data_base64" not in json.dumps(receipts[0])
     assert fake_transport["requests"] == [("inputs.upload.write", args)]
