@@ -8,6 +8,12 @@ The authorized architecture cleanup retires only the Generation definition/verif
 
 ## Core principles
 
+The subsequent pre-deployment request under Controller #6 authorizes matching
+the 25-tool Generation catalog, including bounded comfy.register/get, with
+deterministic tests and reviewable PRs. Controller source is accepted in main;
+this new profile is a separate proposal. No merge or production change is
+authorized here. Old workflows.register/verify/v3 remain retired.
+
 1. **Keep the Hub thin**
    - The Hub aggregates MCP capabilities and routes calls.
    - Do not move application-specific business logic, ExecuteFlow/ComfyWorkFlow execution, project state, or editing state into the Hub.
