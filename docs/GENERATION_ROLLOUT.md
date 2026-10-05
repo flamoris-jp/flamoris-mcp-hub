@@ -1,9 +1,10 @@
 # Generation / Hub paired rollout acceptance
 
-The matching source catalog exposes 23 retained external Generation tools.
-Custom definition registration/qualification and the optional Image v3 surface
-have been removed. Built-in/native recipe construction, jobs, assets and bounded
-inputs remain. Updating the tracked underscore template does not update the
+The matching source catalog exposes 25 external Generation tools: 23 retained
+operations plus `comfy.register/get` for the accepted bounded checkpoint
+txt2img/img2img profile. Old `workflows.register/verify`, custom qualification
+and every Image v3 tool remain retired. Built-in/native recipes, jobs, assets
+and bounded inputs remain. See [COMFY_REGISTRATION.md](COMFY_REGISTRATION.md). Updating the tracked underscore template does not update the
 deployment-local `generation.yaml` or the running Hub process.
 
 `inputs.upload.begin/write/finish` retain exact private UUID, PNG/JPEG/WebP MIME,
@@ -12,12 +13,14 @@ decoding, expiry, storage and provider leases. Hub forwards opaque external
 arguments/results once and keeps no upload or product-user ownership state.
 Signed calls retain the 256 KiB canonical-envelope bound; a 128 KiB raw chunk fits
 with base64 and signed context. Studio uses non-MCP contracts for Intelligence and Agent. Its Generation gateway
-still uses the retained MCP compatibility route and independently authorizes its
+uses authenticated Controller HTTP and independently authorizes its
 users; external client provenance is not Studio authorization.
 
-Generation still owns retained jobs, inputs and assets until a separately scoped
-Controller implementation exists. This cleanup implements no Controller and
-creates no new external namespace. Provider availability and actual inference
+Controller now owns generation jobs, inputs and assets. Generation MCP hosts
+one shared Controller for external MCP and internal HTTP callers. The new tools
+use the existing generation namespace; Hub keeps no generation authority.
+Live activation has not been performed. Reference execution requires the existing
+shared `COMFYUI_INPUT_ROOT` and a matched schema-7-capable pair. Provider availability and actual inference
 acceptance remain separate from catalog parity.
 
 ## Record the pair before changing it
@@ -30,8 +33,9 @@ volumes. A rollback target must include JobStore uncertain-submit hardening;
 rolling back to code that releases an ambiguous submission's reservation is not a
 safe recovery plan.
 
-Use `_generation.example.yaml` from the same cleanup contract as the deployed
-Generation revision. Remove the retired tools from the deployment-local catalog
+Use `_generation.example.yaml` from the same 25-tool contract as the deployed
+Generation revision. An older 23-tool runtime catalog fails whole-catalog parity
+against this export; do not bypass that refusal. Remove the retired tools from the deployment-local catalog
 rather than retaining the old v3 profile. Update the two services in one maintenance
 window and admit no new generation work while the pair is being changed.
 
@@ -92,7 +96,7 @@ Hub, initializes them, and requests `tools/list` once from each. It makes no
 `tools/call`, verification, submission, runtime activation or readiness mutation.
 It compares every tool name, input schema and annotation against the runtime
 YAML. The Hub comparison includes the selected namespace only, so unrelated
-upstreams may remain configured. The direct upstream comparison requires the whole retained profile. Missing or
+upstreams may remain configured. The direct upstream comparison requires the whole selected 25-tool profile. Missing or
 additional retired tools are a mismatch in this explicit whole-catalog check.
 
 Success exits zero with `status: matched` and matching contract digests for the
@@ -115,6 +119,10 @@ provider acceptance separately after the pair receipt succeeds; never replay
 an ambiguous call automatically.
 
 ## Roll back and verify the rollback
+
+Before rollback to a pre-schema-7 pair, drain/reconcile registered jobs and
+protected provider copies. Preserve immutable definitions and recipe/input data;
+an older matched catalog alone does not establish state-format compatibility.
 
 If acceptance fails, stop admitting new work, inspect live JobStore state through
 Generation, and retain any unresolved submission's reservation. Restore the

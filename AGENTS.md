@@ -11,8 +11,9 @@ The accepted architecture cleanup retired the old Generation definition/verifica
 The subsequent pre-deployment request under Controller #6 authorizes matching
 the 25-tool Generation catalog, including bounded comfy.register/get, with
 deterministic tests and reviewable PRs. Controller source is accepted in main;
-this new profile is a separate proposal. No merge or production change is
-authorized here. Old workflows.register/verify/v3 remain retired.
+this profile is accepted through Controller #7, Generation #72 and Hub #39
+after the explicit merge instruction (AI PROGRESS §4.9). Live rollout remains
+pending; the current request aligns documentation only. Old workflows.register/verify/v3 remain retired.
 
 1. **Keep the Hub thin**
    - The Hub aggregates MCP capabilities and routes calls.
