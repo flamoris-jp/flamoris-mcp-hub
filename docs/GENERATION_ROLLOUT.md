@@ -11,8 +11,9 @@ deployment-local `generation.yaml` or the running Hub process.
 decoding, expiry, storage and provider leases. Hub forwards opaque external
 arguments/results once and keeps no upload or product-user ownership state.
 Signed calls retain the 256 KiB canonical-envelope bound; a 128 KiB raw chunk fits
-with base64 and signed context. Studio uses its authenticated non-MCP boundary;
-external client provenance is not Studio authorization.
+with base64 and signed context. Studio uses non-MCP contracts for Intelligence and Agent. Its Generation gateway
+still uses the retained MCP compatibility route and independently authorizes its
+users; external client provenance is not Studio authorization.
 
 Generation still owns retained jobs, inputs and assets until a separately scoped
 Controller implementation exists. This cleanup implements no Controller and
