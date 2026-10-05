@@ -139,7 +139,10 @@ do not certify that a deployed music provider or model is ready for inference.
 
 ### Generation catalog after architecture cleanup
 
-The tracked Generation template exposes 23 retained external tools. Built-in
+The tracked Generation template exposes 25 external tools: 23 retained tools and
+the bounded `comfy.register/get` graph contract. See
+[ComfyWorkFlow registration](docs/COMFY_REGISTRATION.md) for supported init-image
+graphs, managed reference inputs and the matching upstream requirement. Built-in
 recipe construction and native-provider requests still use the literal
 `workflows.list/build/save` names. Custom definition registration/qualification
 (`workflows.register/verify`) and every `workflows.v3.*` tool have been retired.
@@ -477,8 +480,8 @@ integration. No production secrets or deployment-specific paths are supplied her
 
 ## Generation catalog rollout
 
-The matching retained Generation catalog contains 23 tools. Removed registration,
-verification and v3 definitions must also be removed from deployment-local YAML;
+The matching Generation catalog contains 25 tools. Removed `workflows.register/verify`
+and v3 definitions must also be removed from deployment-local YAML;
 otherwise lazy discovery blocks the affected connection before forwarding, including
 health calls. Refresh only the tool catalog while preserving deployment settings,
 then obtain a fresh parity receipt as described in [paired rollout](docs/GENERATION_ROLLOUT.md).
