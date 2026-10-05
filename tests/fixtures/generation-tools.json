@@ -111,6 +111,52 @@
       "openWorldHint": false
     }
   },
+  "comfy.register": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "graph": {
+          "additionalProperties": true,
+          "title": "Graph",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "graph"
+      ],
+      "title": "register_comfyArguments"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  "comfy.get": {
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "definition_id": {
+          "title": "Definition Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "definition_id"
+      ],
+      "title": "get_comfyArguments"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
   "workflows.build": {
     "input_schema": {
       "type": "object",

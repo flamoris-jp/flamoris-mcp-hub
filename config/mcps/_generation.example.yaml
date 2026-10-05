@@ -1,5 +1,5 @@
 # Exact Generation catalog; update the deployed catalog in the same maintenance window.
-# Exported from Generation c22dc57d84cb51047b7b64ed4ed6e24b4abce20d (25 tools).
+# Exported from Generation 2fe76c71260d79dde5f3d8fe54c9d8737f6ba552 (25 tools).
 id: generation
 # Optional trusted per-client context; configure matched Generation verifier first.
 # external_provenance_secret_env: GENERATION_PROVENANCE_SECRET
@@ -8,6 +8,41 @@ enabled: true
 transport: streamable-http
 url: https://generation.example.com/mcp
 tools:
+- name: comfy.register
+  annotations:
+    readOnlyHint: false
+    destructiveHint: false
+    openWorldHint: false
+  description: Register an immutable bounded checkpoint txt2img or init-image ComfyWorkFlow.
+  input_schema:
+    type: object
+    properties:
+      name:
+        title: Name
+        type: string
+      graph:
+        additionalProperties: true
+        title: Graph
+        type: object
+    required:
+    - name
+    - graph
+    title: register_comfyArguments
+- name: comfy.get
+  annotations:
+    readOnlyHint: true
+    destructiveHint: false
+    openWorldHint: false
+  description: Get a registered ComfyWorkFlow graph, defaults and immutable content digest.
+  input_schema:
+    type: object
+    properties:
+      definition_id:
+        title: Definition Id
+        type: string
+    required:
+    - definition_id
+    title: get_comfyArguments
 - name: system.health
   annotations:
     readOnlyHint: true

@@ -47,6 +47,8 @@ async def test_opaque_generation_forwarding_no_replay(
 
     monkeypatch.setattr(FakeSession, "call_tool", result)
     calls = [
+        ("comfy.register", {"name": "Reference", "graph": {"opaque": "upstream validates"}}),
+        ("comfy.get", {"definition_id": "comfy-" + "a" * 64}),
         ("workflows.build", {"template": "text-to-image", "parameters": {}}),
         ("workflows.save", {"workflow_id": "opaque-built-recipe"}),
         ("jobs.submit", {"workflow_id": "opaque-built-recipe"}),
@@ -84,3 +86,25 @@ async def test_old_catalog_blocks_unchanged_health_before_forward(tmp_path, fake
         )
         assert not (await hub.call_public_tool("generation.system.health", {})).is_error
         assert fake_transport["calls"] == 1
+
+
+@pytest.mark.parametrize("missing", ["comfy.register", "comfy.get"])
+async def test_old_generation_cannot_receive_mutation_with_new_catalog(
+    tmp_path, fake_transport, missing
+):
+    (tmp_path / "generation.yaml").write_text(
+        (ROOT / "config/mcps/_generation.example.yaml").read_text()
+    )
+    catalog = Catalog(load_upstreams(tmp_path))
+    fake_transport["tools"] = [
+        SimpleNamespace(
+            name=t.name, input_schema=t.input_schema, annotations=t.annotations.to_mcp()
+        )
+        for t in catalog.configs["generation"].tools
+        if t.name != missing
+    ]
+    hub = UpstreamRegistry(catalog)
+    async with hub.run():
+        with pytest.raises(LookupError, match="catalog mismatch"):
+            await hub.call_public_tool("generation.jobs.submit", {"workflow_id": "opaque"})
+    assert fake_transport["calls"] == 0

@@ -4,9 +4,15 @@ This repository contains the FLAMORIS MCP Hub.
 
 AI agents and human contributors should treat the Hub as a small external MCP aggregation and routing boundary. Internal Studio, Agent, Runtime and generation-domain callers use non-MCP interfaces. The Hub is not an internal service bus and must not become a second source of truth for upstream applications. Read [AI architecture](https://github.com/flamoris-jp/flamoris-ai/blob/main/docs/ARCHITECTURE.md) and [Hub #36](https://github.com/flamoris-jp/flamoris-mcp-hub/issues/36).
 
-The authorized architecture cleanup retires only the Generation definition/verification/v3 catalogs that were removed upstream and reconciles internal-consumer assumptions. Preserve external routing, lazy connection/discovery, authentication/provenance, errors/media and no replay after uncertain mutation. Controller remains unimplemented; no new namespace or production change is implied.
+The accepted architecture cleanup retired the old Generation definition/verification/v3 catalogs and reconciled internal-consumer assumptions. Preserve external routing, lazy connection/discovery, authentication/provenance, errors/media and no replay after uncertain mutation. Controller source is now accepted in main; the subsequent feature scope below adds two tools in the existing generation namespace without implying production activation.
 
 ## Core principles
+
+The subsequent pre-deployment request under Controller #6 authorizes matching
+the 25-tool Generation catalog, including bounded comfy.register/get, with
+deterministic tests and reviewable PRs. Controller source is accepted in main;
+this new profile is a separate proposal. No merge or production change is
+authorized here. Old workflows.register/verify/v3 remain retired.
 
 1. **Keep the Hub thin**
    - The Hub aggregates MCP capabilities and routes calls.
