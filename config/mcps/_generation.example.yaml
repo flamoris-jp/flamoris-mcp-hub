@@ -95,23 +95,6 @@ tools:
     type: object
     properties: {}
     title: list_workflowsArguments
-- name: workflows.register
-  annotations:
-    readOnlyHint: false
-    destructiveHint: true
-    openWorldHint: false
-  description: Statically validate and durably activate a trusted candidate; registration
-    does not confer production readiness.
-  input_schema:
-    type: object
-    properties:
-      definition:
-        additionalProperties: true
-        title: Definition
-        type: object
-    required:
-    - definition
-    title: register_workflowArguments
 - name: workflows.build
   annotations:
     readOnlyHint: false
@@ -149,35 +132,6 @@ tools:
     - template
     - parameters
     title: build_workflowArguments
-- name: workflows.verify
-  description: Admit bounded automatic verification through the normal Generation
-    job authority. Poll jobs.status/result; never replay uncertain work.
-  annotations:
-    readOnlyHint: false
-    destructiveHint: true
-    openWorldHint: false
-  input_schema:
-    type: object
-    properties:
-      workflow_id:
-        title: Workflow Id
-        type: string
-      definition_version:
-        title: Definition Version
-        type: integer
-      definition_digest:
-        title: Definition Digest
-        type: string
-      parameters:
-        additionalProperties: true
-        title: Parameters
-        type: object
-    required:
-    - workflow_id
-    - definition_version
-    - definition_digest
-    - parameters
-    title: verify_workflowArguments
 - name: workflows.save
   annotations:
     readOnlyHint: false

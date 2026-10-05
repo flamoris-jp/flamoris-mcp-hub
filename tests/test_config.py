@@ -11,18 +11,9 @@ def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path, 
     template = Path(__file__).parents[1] / "config/mcps/_generation.example.yaml"
     raw = yaml.safe_load(template.read_text(encoding="utf-8"))
     schemas = {tool["name"]: tool["input_schema"] for tool in raw["tools"]}
-    assert schemas["workflows.register"] == {
-        "type": "object",
-        "properties": {
-            "definition": {
-                "additionalProperties": True,
-                "title": "Definition",
-                "type": "object",
-            }
-        },
-        "required": ["definition"],
-        "title": "register_workflowArguments",
-    }
+    assert len(schemas) == 23
+    assert not {"workflows.register", "workflows.verify"} & set(schemas)
+    assert not any(name.startswith("workflows.v3.") for name in schemas)
     assert schemas["workflows.build"] == {
         "type": "object",
         "properties": {
@@ -86,7 +77,7 @@ def test_generation_template_exposes_workflow_and_delete_schema(tmp_path: Path, 
     assert load_upstreams(template.parent) == []
     (tmp_path / "generation.yaml").write_text(template.read_text(encoding="utf-8"))
     catalog = Catalog(load_upstreams(tmp_path))
-    assert "generation.workflows.register" in catalog.tools
+    assert "generation.workflows.register" not in catalog.tools
     assert "generation.workflows.build" in catalog.tools
     assert "generation.assets.delete" in catalog.tools
     assert "generation.assets.prepare" in catalog.tools

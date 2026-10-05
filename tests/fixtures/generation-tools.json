@@ -111,27 +111,6 @@
       "openWorldHint": false
     }
   },
-  "workflows.register": {
-    "input_schema": {
-      "type": "object",
-      "properties": {
-        "definition": {
-          "additionalProperties": true,
-          "title": "Definition",
-          "type": "object"
-        }
-      },
-      "required": [
-        "definition"
-      ],
-      "title": "register_workflowArguments"
-    },
-    "annotations": {
-      "readOnlyHint": false,
-      "destructiveHint": true,
-      "openWorldHint": false
-    }
-  },
   "workflows.build": {
     "input_schema": {
       "type": "object",
@@ -184,42 +163,6 @@
     "annotations": {
       "readOnlyHint": false,
       "destructiveHint": false,
-      "openWorldHint": false
-    }
-  },
-  "workflows.verify": {
-    "input_schema": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "title": "Workflow Id",
-          "type": "string"
-        },
-        "definition_version": {
-          "title": "Definition Version",
-          "type": "integer"
-        },
-        "definition_digest": {
-          "title": "Definition Digest",
-          "type": "string"
-        },
-        "parameters": {
-          "additionalProperties": true,
-          "title": "Parameters",
-          "type": "object"
-        }
-      },
-      "required": [
-        "workflow_id",
-        "definition_version",
-        "definition_digest",
-        "parameters"
-      ],
-      "title": "verify_workflowArguments"
-    },
-    "annotations": {
-      "readOnlyHint": false,
-      "destructiveHint": true,
       "openWorldHint": false
     }
   },

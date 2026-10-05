@@ -67,7 +67,8 @@ The key is frozen when the registry starts. Rotate Hub and Generation together
 under paused submission ingress, then reconnect and verify the pair. Keep the
 upstream network/proxy authentication boundary: provenance verification does
 not make Generation's entire MCP API authenticated and does not restrict its
-existing anonymous/internal calls.
+existing anonymous external calls. Internal FLAMORIS components do not use Hub or
+MCP as an execution bus.
 
 ## Per-request wire contract
 

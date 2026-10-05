@@ -5,7 +5,7 @@ Single-entry MCP hub for FLAMORIS, aggregating and routing namespaced tools acro
 FLAMORIS MCP Hub provides one MCP-facing entry point for independently owned FLAMORIS MCP servers.
 It reads a static tool catalog, exposes tools under explicit namespaces, and routes calls to the correct upstream server without taking ownership of application state.
 
-The repository starts intentionally small. The Hub is a transport and aggregation boundary, not a replacement for the domain authority held by each FLAMORIS application or service.
+The Hub is ChatGPT's external MCP transport and aggregation boundary. Internal Studio, Agent and Runtime calls use their owning non-MCP interfaces. The Hub does not select providers, execute ExecuteFlow or interpret ComfyWorkFlow JSON. See [AI architecture](https://github.com/flamoris-jp/flamoris-ai/blob/main/docs/ARCHITECTURE.md) and [Hub #36](https://github.com/flamoris-jp/flamoris-mcp-hub/issues/36).
 
 ## Goals
 
@@ -103,10 +103,9 @@ After updating, copy `config/mcps/_generation.example.yaml` to `config/mcps/gene
 The template includes `assets.prepare` and `assets.read` for bounded asset
 delivery. Existing deployments must add these exact tool definitions to their
 runtime YAML and restart the Hub after deploying a compatible Generation MCP.
-Studio uses these tools for images above its small native-image threshold, so
-leaving an older runtime catalog in place will prevent preview and download.
-The Hub does not authorize individual Studio users; Studio checks ownership on
-every transfer request before forwarding it through the authenticated Hub.
+External MCP clients use these tools for assets above the native-image limit.
+Hub client provenance does not authorize a Studio account or asset import.
+Internal Studio preview/download uses its authenticated non-MCP backend boundary.
 
 ### MCP image display and download
 
@@ -118,8 +117,8 @@ individual image content block to that helper rather than printing its base64
 data. Hub cannot choose or confirm the client application's display behavior.
 
 Large assets use the bounded `generation.assets.prepare` / `generation.assets.read`
-contract. Studio checks the logged-in user's ownership before each chunk and
-serves its own authenticated preview/download. These tools do not return a
+contract for external MCP clients. Studio independently authorizes imports and
+serves its own authenticated preview/download through its internal boundary. These tools do not return a
 public URL or raw provider/server path. Client UI display and any future MCP
 resource/download endpoint still require independent client acceptance (#8).
 
@@ -135,38 +134,22 @@ The Hub forwards multi-asset results, optional ABC-generation errors, media kind
 MIME types and transfer digests unchanged, including WAV, MIDI (`audio/midi`), ABC
 (`text/vnd.abc`) and JSON annotations. Clients must retrieve the asset selected
 from the returned manifest rather than assuming the first output is playable
-audio. Studio checks user ownership before each transfer. These transport tests
+audio. Asset imports into Studio require its own user authorization. These transport tests
 do not certify that a deployed music provider or model is ready for inference.
 
-### Optional Generation v3 route
+### Generation catalog after architecture cleanup
 
-For coordinated Generation/Hub updates, deployment-local catalog refresh,
-fresh-connection parity receipts and rollback acceptance, follow
-[Generation paired rollout](docs/GENERATION_ROLLOUT.md). The explicit checker is
-read-only and does not replace Generation-owned real-runtime verification.
+The tracked Generation template exposes 23 retained external tools. Built-in
+recipe construction and native-provider requests still use the literal
+`workflows.list/build/save` names. Custom definition registration/qualification
+(`workflows.register/verify`) and every `workflows.v3.*` tool have been retired.
+The optional v3 template and its fixtures were removed; no Controller namespace
+or replacement composition engine is introduced.
 
-`config/mcps/_generation-v3.example.yaml` exports the 30-tool contract from
-[Generation #65](https://github.com/flamoris-jp/flamoris-generation-mcp/pull/65),
-exported from commit c22dc57d84cb51047b7b64ed4ed6e24b4abce20d, including three
-`inputs.upload.*` tools and five separately named `workflows.v3.*` tools. Schema/annotation fixtures
-preserve every legacy tool. The template is ignored until copied to the existing
-runtime `generation.yaml`; replace that file rather than enabling both templates,
-which would conflict on upstream id and namespace. Restore your own endpoint and
-credential references when replacing it.
-
-Deploy the compatible Generation revision with `FLAMORIS_WORKFLOW_V3_ENABLED=true`
-before switching this catalog. A v3 catalog against an older/disabled upstream
-blocks forwarding before a tool call. The legacy catalog continues to work with
-an upgraded upstream but does not expose the new tools. No startup connection,
-workflow registration, smoke, model selection or runtime activation is added.
-
-Generation remains the sole version registry, verifier, JobStore and asset owner.
-Use its exact id/version/digest and opaque built workflow handles; the Hub forwards
-readiness, revocation, errors and unknown submission results unchanged and never
-replays a verification/generation call. The first profile is one audited Image
-leaf inside pinned pass-through wrappers. Multiple components, other media, real
-GPU smoke and the Studio v3 route remain separate rollout gates. See Generation's
-[execution guide](https://github.com/flamoris-jp/flamoris-generation-mcp/blob/main/docs/IMAGE_V3_EXECUTION.md).
+Update the compatible Generation upstream and deployment-local catalog together;
+[Generation paired rollout](docs/GENERATION_ROLLOUT.md) describes fresh discovery
+receipts and rollback. The checker is read-only and verifies catalog compatibility,
+not provider readiness. Hub startup stays offline and forwarding stays opaque.
 
 ### Intelligence route
 
@@ -179,12 +162,12 @@ proxy credential reference; never copy a token into YAML. Replace the catalog an
 upstream together if the contract changes. Startup/discovery remains offline and
 does not load a model, probe a provider or run inference.
 
-This route shares the Hub's existing trusted client group. It supplies no Studio
-user identity, per-user result ownership, or Agent delegation. Studio's raw editor
-uses its authenticated backend gateway; do not expose Agent sessions through this
-shared token as if it authenticated individual users. Scoped Agent integration
-remains under #25/#28. The Hub forwards raw structured/error results unchanged,
-and never retries an ambiguous inference call.
+This route is for external MCP clients and shares the Hub's existing trusted client
+group. It supplies no Studio user identity, per-user ownership or Agent delegation.
+Internal raw intelligence and Agent execution use non-MCP interfaces. An external
+Agent surface, if independently configured, must retain its own scoped authorization.
+The Hub forwards raw structured/error results unchanged and never retries an
+ambiguous inference call.
 
 Upstream discovery with duplicate tool names or a pagination cursor fails closed
 before any call. Update/reconnect a matching full static catalog to recover;
@@ -492,13 +475,14 @@ Deployment to a live Hub and physical Windows UI acceptance are separate from so
 integration. No production secrets or deployment-specific paths are supplied here.
 
 
-## Generation Workflow rollout
+## Generation catalog rollout
 
-The Generation template includes workflows.verify and version/digest/require_ready
-build preconditions. It is exported from the Generation MCP protocol; the fixture
-records exact schemas and annotations. Update the deployed catalog together with
-Generation during a maintenance window: pause ingress, drain/reconcile work, replace
-the singleton/catalog pair, restart Hub, check parity on a fresh connection, then
-deploy Studio and reopen. Mixed schemas reject the entire connection, even health.
-Roll back the matching pair with compatible Studio/DB and persistence; preserve data.
-Hub forwards outcomes unchanged and never retries unknown submissions or certifies ready.
+The matching retained Generation catalog contains 23 tools. Removed registration,
+verification and v3 definitions must also be removed from deployment-local YAML;
+otherwise lazy discovery blocks the affected connection before forwarding, including
+health calls. Refresh only the tool catalog while preserving deployment settings,
+then obtain a fresh parity receipt as described in [paired rollout](docs/GENERATION_ROLLOUT.md).
+
+No user data or uncertain-job reservation is deleted by source cleanup. Hub forwards
+retained calls once and never retries unknown submissions or certifies provider
+readiness. Internal Studio/Agent wiring is separate from external Hub deployment.
