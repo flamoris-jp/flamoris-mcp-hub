@@ -100,7 +100,8 @@ async def test_old_generation_cannot_receive_mutation_with_new_catalog(
         SimpleNamespace(
             name=t.name, input_schema=t.input_schema, annotations=t.annotations.to_mcp()
         )
-        for t in catalog.configs["generation"].tools if t.name != missing
+        for t in catalog.configs["generation"].tools
+        if t.name != missing
     ]
     hub = UpstreamRegistry(catalog)
     async with hub.run():
