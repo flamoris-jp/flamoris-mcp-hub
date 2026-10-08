@@ -123,7 +123,7 @@ async def on_call_tool(
 
 server = Server(
     "FLAMORIS MCP Hub",
-    version="0.1.0",
+    version="1.0.0",
     lifespan=lifespan,
     on_list_tools=on_list_tools,
     on_call_tool=on_call_tool,
@@ -175,7 +175,7 @@ def create_app(*, host: str = "127.0.0.1", mcp_path: str = "/mcp") -> DesktopGat
 
     runtime_server = Server(
         "FLAMORIS MCP Hub",
-        version="0.1.0",
+        version="1.0.0",
         lifespan=runtime_lifespan,
         on_list_tools=on_list_tools,
         on_call_tool=on_call_tool,
@@ -210,7 +210,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    from flamoris_update_core.admission import wait_for_admission
+
     args = parse_args()
+    wait_for_admission("flamoris-mcp-hub")
     logging.basicConfig(level=logging.INFO)
     runtime_app = create_app(host=args.host, mcp_path=args.mcp_path)
     uvicorn.run(

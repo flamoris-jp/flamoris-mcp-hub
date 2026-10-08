@@ -8,6 +8,7 @@ from typing import Any
 
 import anyio
 import httpx2
+from flamoris_update_core.admission import guarded
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 from mcp.types import CallToolResult
@@ -272,6 +273,7 @@ class UpstreamRegistry:
             for c in self._connections.values()
         ]
 
+    @guarded(ConnectionError)
     async def call_public_tool(
         self,
         public_name: str,
