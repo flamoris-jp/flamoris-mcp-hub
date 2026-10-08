@@ -1,0 +1,34 @@
+name: Build reviewed v1 release candidate
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 623f6329d94e168b75c0bcb9e7d8be03345d5a76
+      - name: Verify exact reviewed source
+        run: test "$(git rev-parse HEAD)" = "623f6329d94e168b75c0bcb9e7d8be03345d5a76"
+      - name: Build candidate image
+        run: docker build --pull --tag flamoris-mcp-hub:1.0.0 .
+      - name: Import smoke
+        run: docker run --rm --entrypoint python flamoris-mcp-hub:1.0.0 -c "import flamoris_mcp_hub.server"
+      - name: Export immutable candidate
+        shell: bash
+        run: |
+          mkdir -p candidate
+          docker image inspect --format '{{.Id}}' flamoris-mcp-hub:1.0.0 > candidate/image-id.txt
+          docker save flamoris-mcp-hub:1.0.0 | gzip -n -9 > candidate/flamoris-mcp-hub-1.0.0-linux-amd64.docker.tar.gz
+          sha256sum candidate/flamoris-mcp-hub-1.0.0-linux-amd64.docker.tar.gz > candidate/SHA256SUMS
+          printf '%s\n' '{"format_version":1,"application":"flamoris-mcp-hub","release":"1.0.0","platform":"linux/amd64","source_revision":"623f6329d94e168b75c0bcb9e7d8be03345d5a76"}' > candidate/provenance.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flamoris-mcp-hub-1.0.0-linux-amd64
+          path: candidate/
+          retention-days: 3
