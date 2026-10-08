@@ -489,3 +489,8 @@ then obtain a fresh parity receipt as described in [paired rollout](docs/GENERAT
 No user data or uncertain-job reservation is deleted by source cleanup. Hub forwards
 retained calls once and never retries unknown submissions or certifies provider
 readiness. Internal Studio/Agent wiring is separate from external Hub deployment.
+
+## Updater entry release 1.0.0
+
+See [Updater compatibility](docs/UPDATER.md) for the implemented admission/Owner
+contract and pending signed release/private provisioning/real-host acceptance.
