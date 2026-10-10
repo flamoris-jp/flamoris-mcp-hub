@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "flamoris-mcp-hub"
-version = "1.0.0"
+version = "1.0.1"
 description = "Single-entry MCP hub for FLAMORIS"
 readme = "README.md"
 license = { file = "LICENSE" }

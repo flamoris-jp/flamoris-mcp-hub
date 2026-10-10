@@ -123,7 +123,7 @@ async def on_call_tool(
 
 server = Server(
     "FLAMORIS MCP Hub",
-    version="1.0.0",
+    version="1.0.1",
     lifespan=lifespan,
     on_list_tools=on_list_tools,
     on_call_tool=on_call_tool,
@@ -175,7 +175,7 @@ def create_app(*, host: str = "127.0.0.1", mcp_path: str = "/mcp") -> DesktopGat
 
     runtime_server = Server(
         "FLAMORIS MCP Hub",
-        version="1.0.0",
+        version="1.0.1",
         lifespan=runtime_lifespan,
         on_list_tools=on_list_tools,
         on_call_tool=on_call_tool,
