@@ -1,0 +1,86 @@
+{
+  "application_id": "flamoris-mcp-hub",
+  "sql_files": [],
+  "recipe": {
+    "application_id": "flamoris-mcp-hub",
+    "release": "1.0.1",
+    "platform": "linux/amd64",
+    "compatible_from": [],
+    "dependencies": {},
+    "settings": [
+      {
+        "key": "PORT",
+        "label": "待受ポート",
+        "default": "8769",
+        "secret": false,
+        "required": false,
+        "generate": false,
+        "kind": "port"
+      },
+      {
+        "key": "HUB_TOKEN",
+        "label": "Hub接続トークン",
+        "default": "",
+        "secret": true,
+        "required": false,
+        "generate": true,
+        "kind": "url_password"
+      },
+      {
+        "key": "ALLOWED_HOSTS",
+        "label": "プロキシ経由で許可するHost（カンマ区切り）",
+        "default": "",
+        "secret": false,
+        "required": false,
+        "generate": false,
+        "kind": "text"
+      }
+    ],
+    "downloads": {},
+    "generated": {
+      "runtime.env": "FLAMORIS_MCP_HUB_PORT=${PORT}\nFLAMORIS_MCP_HUB_CONFIG_DIR=/app/config/mcps\nFLAMORIS_MCP_HUB_CLIENT_TOKEN=${HUB_TOKEN}\nFLAMORIS_MCP_HUB_ALLOWED_HOSTS=${ALLOWED_HOSTS}\n"
+    },
+    "application": {
+      "application_id": "flamoris-mcp-hub",
+      "release": "1.0.1",
+      "directories": [
+        {
+          "path": "${root}/config"
+        },
+        {
+          "path": "${root}/mcps",
+          "uid": 10001,
+          "gid": 10001,
+          "mode": 493
+        }
+      ],
+      "files": [
+        {
+          "source": {
+            "path": "${package}/runtime.env",
+            "digest": "generated",
+            "private": true
+          },
+          "destination": "${root}/config/runtime.env"
+        }
+      ],
+      "health_url": "http://127.0.0.1:${PORT}/mcp",
+      "kind": "docker",
+      "image_archive": {
+        "path": "${package}/image.tar",
+        "digest": "artifact",
+        "private": false
+      },
+      "image_id": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "container_name": "flamoris-mcp-hub",
+      "environment_file": "${root}/config/runtime.env",
+      "mounts": [
+        {
+          "source": "${root}/mcps",
+          "target": "/app/config/mcps",
+          "read_only": true
+        }
+      ]
+    }
+  }
+}

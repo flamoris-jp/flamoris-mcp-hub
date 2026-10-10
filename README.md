@@ -490,7 +490,6 @@ No user data or uncertain-job reservation is deleted by source cleanup. Hub forw
 retained calls once and never retries unknown submissions or certifies provider
 readiness. Internal Studio/Agent wiring is separate from external Hub deployment.
 
-## Updater entry release 1.0.0
+## Updater installation
 
-See [Updater compatibility](docs/UPDATER.md) for the implemented admission/Owner
-contract and pending signed release/private provisioning/real-host acceptance.
+See [repository-owned distribution](docs/UPDATER.md) for release 1.0.1, its catalog and post-install configuration. Publication and actual-host acceptance remain separately verified.
