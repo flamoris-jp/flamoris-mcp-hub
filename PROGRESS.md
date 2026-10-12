@@ -1,3 +1,9 @@
+# Reference catalog alignment — 2026-10-12
+
+The Generation models.list enum now includes ipadapter to match Controller #13/#14 and Generation MCP #81. The 25-tool names, routing and annotations are unchanged. The example catalog and checked-in fixture match the actual matched MCP facade's schemas and annotations without contacting any provider. Existing operator generation.yaml must be refreshed deliberately; no active catalog, host or credential was changed.
+
+---
+
 # Repository-owned distribution preparation — 2026-10-11
 
 The operator explicitly requested preparing this repository for individual Updater installation. Release 1.0.1 adds an app-owned installer definition, per-platform packaging, direct Release URLs and typed/profile validation. No centralized app distribution, live deployment, DB/data/credential change or provider invocation is performed. CI/publication and actual-host acceptance will be reported separately. This is a new-install recipe; no unverified compatibility edge is declared.
