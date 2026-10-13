@@ -122,3 +122,11 @@ cross-credential session rejection, signatures on a reused upstream connection
 and clean transport teardown. Real tunnel/provider/Studio two-user validation
 still requires the matched deployed revisions and operator credential/link
 configuration.
+
+## Linked Studio gallery
+
+Studio 1.0.6 can automatically register completed generations from an operator-linked individual client while Assets is visible. Generation MCP 1.0.5 embeds Controller 1.0.2 with internal-only bounded discovery. The Hub's 25-tool Generation catalog and lazy routing remain unchanged; discovery is not a new external MCP tool or a Hub-to-Studio callback.
+
+Provision an individual credential with the configuration above, configure matching Generation signing/verification, and grant its exact issuer/subject to an existing Studio account under `STUDIO_EXTERNAL_BINDINGS`. Then reconnect the external client using its individual credential and refresh Studio. The shared anonymous credential never establishes ownership, and historical anonymous jobs are not assigned retroactively.
+
+Studio rechecks account/session/binding and immutable job/asset provenance before publishing opaque Asset handles. Hub supplies credential identity only and does not own Studio accounts, catalog rows or result files. See [Studio import](https://github.com/flamoris-jp/flamoris-studio/blob/main/docs/EXTERNAL_GENERATION_IMPORT.md) and [Controller internal API](https://github.com/flamoris-jp/flamoris-generation-controller/blob/main/docs/API.md).
