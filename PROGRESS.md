@@ -1,8 +1,6 @@
-# Reference catalog alignment — 2026-10-12
+# Reference catalog alignment — 2026-10-13
 
-The Generation models.list enum now includes ipadapter to match Controller #13/#14 and Generation MCP #81. The 25-tool names, routing and annotations are unchanged. The example catalog and checked-in fixture match the actual matched MCP facade's schemas and annotations without contacting any provider. Existing operator generation.yaml must be refreshed deliberately; no active catalog, host or credential was changed.
-
----
+Adds the IPAdapter model kind and reviewed reference-profile description to the inactive Generation example and schema fixture. Preserves current individual-client configuration and 25-tool routing. Live operator catalog refresh remains separate from source CI.
 
 # Repository-owned distribution preparation — 2026-10-11
 
