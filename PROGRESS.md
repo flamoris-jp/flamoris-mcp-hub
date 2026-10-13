@@ -1,3 +1,7 @@
+# Reference catalog alignment — 2026-10-13
+
+Adds the IPAdapter model kind and reviewed reference-profile description to the inactive Generation example and schema fixture. Preserves current individual-client configuration and 25-tool routing. Live operator catalog refresh remains separate from source CI.
+
 # Repository-owned distribution preparation — 2026-10-11
 
 The operator explicitly requested preparing this repository for individual Updater installation. Release 1.0.1 adds an app-owned installer definition, per-platform packaging, direct Release URLs and typed/profile validation. No centralized app distribution, live deployment, DB/data/credential change or provider invocation is performed. CI/publication and actual-host acceptance will be reported separately. This is a new-install recipe; no unverified compatibility edge is declared.

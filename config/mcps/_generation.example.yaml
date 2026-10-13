@@ -13,7 +13,7 @@ tools:
     readOnlyHint: false
     destructiveHint: false
     openWorldHint: false
-  description: Register an immutable bounded checkpoint txt2img or init-image ComfyWorkFlow.
+  description: Register an immutable bounded checkpoint ComfyWorkFlow, including reviewed IPAdapter and prepared-map ControlNet profiles.
   input_schema:
     type: object
     properties:
@@ -94,6 +94,7 @@ tools:
           - lora
           - vae
           - controlnet
+          - ipadapter
           - clip
           - clip_vision
           - diffusion_model

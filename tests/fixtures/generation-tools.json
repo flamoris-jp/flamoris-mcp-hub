@@ -55,6 +55,7 @@
                 "lora",
                 "vae",
                 "controlnet",
+                "ipadapter",
                 "clip",
                 "clip_vision",
                 "diffusion_model",
