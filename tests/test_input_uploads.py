@@ -19,8 +19,9 @@ ROOT = Path(__file__).parents[1]
 
 
 @pytest.mark.parametrize("profile", ["generation"])
+@pytest.mark.parametrize("mime", ["image/png", "audio/wav"])
 async def test_uploaded_image_contract_and_opaque_forwarding(
-    tmp_path, fake_transport, monkeypatch, profile
+    tmp_path, fake_transport, monkeypatch, profile, mime
 ):
     (tmp_path / "generation.yaml").write_text(
         (ROOT / "config/mcps" / f"_{profile}.example.yaml").read_text()
@@ -43,6 +44,8 @@ async def test_uploaded_image_contract_and_opaque_forwarding(
         }
     schema = exported["inputs.upload.write"]["input_schema"]["properties"]
     assert schema["data_base64"]["maxLength"] == 349528
+    begin_schema = exported["inputs.upload.begin"]["input_schema"]["properties"]
+    assert "audio/wav" in begin_schema["mime_type"]["enum"]
     assert (
         exported["inputs.upload.begin"]["input_schema"]["properties"]["size_bytes"]["maximum"]
         == 8 * 1024**2
@@ -60,7 +63,7 @@ async def test_uploaded_image_contract_and_opaque_forwarding(
     calls = [
         (
             "inputs.upload.begin",
-            dict(upload_id=key, mime_type="image/png", size_bytes=len(data), sha256=digest),
+            dict(upload_id=key, mime_type=mime, size_bytes=len(data), sha256=digest),
         ),
         (
             "inputs.upload.write",

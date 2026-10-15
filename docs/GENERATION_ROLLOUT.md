@@ -136,3 +136,14 @@ zero for the restored selected profile. Attach the recorded restored revisions
 and both receipts to the private operations record. Report failed compatibility
 or unavailable runtime evidence explicitly; do not mark #26's live pair and
 rollback gates complete solely because source tests or a catalog receipt pass.
+
+## Reference speech upload enum
+
+Controller #21 / Controller #22 and Generation #86 add `audio/wav` to the existing
+`inputs.upload.begin` MIME enum. The other 25-tool schemas, chunk bounds,
+signed-context behavior and routing implementation remain unchanged. Upgrade the
+matched producer and copy the additive enum into the existing generation catalog;
+do not replace desktop catalogs or remove concurrent Kachinco upload entries.
+The example remains inactive. Reference parameters pass through the existing
+`workflows.build.parameters` object as `reference_audio` with a managed input ID.
+Input validation, voice upload, inference and cleanup remain Controller-owned.

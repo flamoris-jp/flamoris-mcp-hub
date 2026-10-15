@@ -502,7 +502,8 @@
           "enum": [
             "image/png",
             "image/jpeg",
-            "image/webp"
+            "image/webp",
+            "audio/wav"
           ],
           "title": "Mime Type",
           "type": "string"
