@@ -1,5 +1,7 @@
 import asyncio
+import base64
 import json
+import struct
 from types import SimpleNamespace
 
 import pytest
@@ -206,3 +208,42 @@ async def test_connector_auth_binds_upstream_and_rejects_browser(monkeypatch, he
     assert bool(calls) is accepted
     if not accepted:
         assert sent[-1]["type"] == "websocket.close"
+
+
+@pytest.mark.asyncio
+async def test_reverse_preserves_real_png_image_and_metadata():
+    # Same authenticated outbound-desktop result path as Kachinco preview_frame.
+    png = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9xkAAAAASUVORK5CYII="
+    )
+    connection = ReverseConnection(config())
+    socket, task = await attach(connection, "readOnly")
+    call = asyncio.create_task(connection.call_tool(None, "mcp.context", {}))
+    request = await socket.outgoing.get()
+    metadata = {"width": 1, "height": 1, "projectRevision": "5"}
+    await socket.incoming.put(
+        {
+            "type": "result",
+            "id": request["id"],
+            "result": {
+                "content": [
+                    {"type": "text", "text": json.dumps(metadata)},
+                    {
+                        "type": "image",
+                        "mimeType": "image/png",
+                        "data": base64.b64encode(png).decode(),
+                    },
+                ],
+                "structuredContent": metadata,
+                "isError": False,
+            },
+        }
+    )
+    result = await call
+    image = result.content[1]
+    assert image.type == "image" and image.mime_type == "image/png"
+    assert base64.b64decode(image.data) == png
+    assert struct.unpack(">II", png[16:24]) == (1, 1)
+    assert result.structured_content == metadata
+    await socket.close(1000)
+    await task
