@@ -396,6 +396,7 @@ tools:
         - image/png
         - image/jpeg
         - image/webp
+        - audio/wav
         title: Mime Type
         type: string
       size_bytes:
