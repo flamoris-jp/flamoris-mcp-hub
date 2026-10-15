@@ -59,8 +59,7 @@ def test_catalog_matches_producer_and_speed_is_in_shared_edit_batch():
     assert len(Catalog([actual]).tools) == 6
     commands = actual.tools[1].input_schema["properties"]["input"]["properties"]["commands"]
     speed = next(
-        c for c in commands["items"]["oneOf"]
-        if c["properties"]["type"]["const"] == "SetClipSpeed"
+        c for c in commands["items"]["oneOf"] if c["properties"]["type"]["const"] == "SetClipSpeed"
     )
     assert speed["properties"]["playbackRate"]["enum"] == [1, 2, 4, 8]
 
@@ -77,9 +76,16 @@ async def test_readonly_download_allowed_but_editing_denied_and_old_schema_rejec
     call = asyncio.create_task(connection.call_tool(None, "clip_download_status", {}))
     request = await socket.outgoing.get()
     assert request["name"] == "clip_download_status"
-    await socket.incoming.put({"type": "result", "id": request["id"], "result": {
-        "content": [{"type": "text", "text": "ready"}], "isError": False,
-    }})
+    await socket.incoming.put(
+        {
+            "type": "result",
+            "id": request["id"],
+            "result": {
+                "content": [{"type": "text", "text": "ready"}],
+                "isError": False,
+            },
+        }
+    )
     assert not (await call).is_error
     await socket.close(1000)
     await serving
@@ -103,16 +109,20 @@ async def test_official_http_client_receives_maximum_chunk_and_errors(monkeypatc
     monkeypatch.setattr("flamoris_mcp_hub.server.start_registry", lambda: (catalog, registry))
     chunk = bytes(range(256)) * 512
     receipt = {
-        "downloadId": DOWNLOAD, "offset": "0", "count": len(chunk),
+        "downloadId": DOWNLOAD,
+        "offset": "0",
+        "count": len(chunk),
         "dataBase64": base64.b64encode(chunk).decode(),
-        "chunkSha256": hashlib.sha256(chunk).hexdigest(), "eof": True,
+        "chunkSha256": hashlib.sha256(chunk).hexdigest(),
+        "eof": True,
     }
     with anyio.fail_after(20):
         async with running(create_app()) as url:
             endpoint = url.replace("http://", "ws://").removesuffix("/mcp") + "/desktop/kachinco"
             async with (
-                httpx2.AsyncClient(headers={"Authorization": "Bearer " + ingress},
-                                  trust_env=False) as client,
+                httpx2.AsyncClient(
+                    headers={"Authorization": "Bearer " + ingress}, trust_env=False
+                ) as client,
                 streamable_http_client(url, http_client=client) as streams,
                 ClientSession(*streams) as session,
             ):
@@ -120,9 +130,12 @@ async def test_official_http_client_receives_maximum_chunk_and_errors(monkeypatc
                 assert "kachinco.clip_download_read" in {
                     t.name for t in (await session.list_tools()).tools
                 }
-                async with connect(endpoint, additional_headers={
-                    "Authorization": "Bearer " + connector,
-                }) as desktop:
+                async with connect(
+                    endpoint,
+                    additional_headers={
+                        "Authorization": "Bearer " + connector,
+                    },
+                ) as desktop:
                     await desktop.send(json.dumps(registration()))
                     assert json.loads(await desktop.recv())["type"] == "ready"
 
@@ -134,24 +147,40 @@ async def test_official_http_client_receives_maximum_chunk_and_errors(monkeypatc
                             request = json.loads(await desktop.recv())
                             assert request["name"] == name
                             assert request["arguments"]["guard"] == GUARD
-                            await desktop.send(json.dumps({
-                                "type": "result", "id": request["id"], "result": {
-                                    "content": [{"type": "text", "text": json.dumps(value)}],
-                                    "structuredContent": value, "isError": error,
-                                },
-                            }))
+                            await desktop.send(
+                                json.dumps(
+                                    {
+                                        "type": "result",
+                                        "id": request["id"],
+                                        "result": {
+                                            "content": [
+                                                {"type": "text", "text": json.dumps(value)}
+                                            ],
+                                            "structuredContent": value,
+                                            "isError": error,
+                                        },
+                                    }
+                                )
+                            )
 
                     reply = asyncio.create_task(respond())
                     try:
-                        result = await session.call_tool("kachinco.clip_download_read", {
-                            "input": {"downloadId": DOWNLOAD, "offset": "0", "count": 131072},
-                            "guard": GUARD,
-                        })
+                        result = await session.call_tool(
+                            "kachinco.clip_download_read",
+                            {
+                                "input": {"downloadId": DOWNLOAD, "offset": "0", "count": 131072},
+                                "guard": GUARD,
+                            },
+                        )
                         assert not result.is_error and result.structured_content == receipt
                         assert base64.b64decode(result.structured_content["dataBase64"]) == chunk
-                        result = await session.call_tool("kachinco.clip_download_status", {
-                            "input": {"downloadId": DOWNLOAD}, "guard": GUARD,
-                        })
+                        result = await session.call_tool(
+                            "kachinco.clip_download_status",
+                            {
+                                "input": {"downloadId": DOWNLOAD},
+                                "guard": GUARD,
+                            },
+                        )
                         assert result.is_error
                         assert result.structured_content == {"error": {"code": "stale_revision"}}
                         await reply
