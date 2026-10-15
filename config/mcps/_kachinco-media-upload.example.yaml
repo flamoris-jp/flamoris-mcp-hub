@@ -1,5 +1,6 @@
 # JSON is valid YAML. Merge these tools into the existing reviewed Kachinco catalog.
-# This example alone does not expose the other editing tools. See docs/KACHINCO_UPLOAD.md.
+# Upload annotations explicitly preserve conservative MCP defaults.
+# This example alone does not expose other editing tools. See docs/KACHINCO_UPLOAD.md.
 {
   "id": "kachinco",
   "namespace": "kachinco",
@@ -14,6 +15,11 @@
         "type": "object",
         "properties": {},
         "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
       }
     },
     {
@@ -86,6 +92,11 @@
           "input",
           "guard"
         ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -158,6 +169,11 @@
           "input",
           "guard"
         ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -211,6 +227,11 @@
           "input",
           "guard"
         ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -264,6 +285,11 @@
           "input",
           "guard"
         ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
       }
     }
   ]
