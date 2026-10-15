@@ -1,0 +1,252 @@
+[
+  {
+    "name": "media_upload_begin",
+    "description": "Reserve a bounded media upload. Caller UUID becomes asset ID. Supported image/video/audio; max 512 MiB. Edit grant required; no path or URL.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "uploadId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "fileName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            },
+            "sizeBytes": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "description": "Signed Int64 decimal string; range checked by the typed decoder.",
+              "maxLength": 19
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "maxLength": 64
+            }
+          },
+          "required": [
+            "uploadId",
+            "fileName",
+            "sizeBytes",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "guard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "runtimeId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "documentToken": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "expectedRevision": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 19
+            }
+          },
+          "required": [
+            "runtimeId",
+            "documentToken",
+            "expectedRevision"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "guard"
+      ]
+    }
+  },
+  {
+    "name": "media_upload_write",
+    "description": "Write the next media chunk (max 128 KiB decoded). Identical retries are accepted; offsets are decimal strings. Edit grant required.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "uploadId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "offset": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "description": "Signed Int64 decimal string; range checked by the typed decoder.",
+              "maxLength": 19
+            },
+            "dataBase64": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 174764
+            },
+            "chunkSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "maxLength": 64
+            }
+          },
+          "required": [
+            "uploadId",
+            "offset",
+            "dataBase64",
+            "chunkSha256"
+          ],
+          "additionalProperties": false
+        },
+        "guard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "runtimeId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "documentToken": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "expectedRevision": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 19
+            }
+          },
+          "required": [
+            "runtimeId",
+            "documentToken",
+            "expectedRevision"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "guard"
+      ]
+    }
+  },
+  {
+    "name": "media_upload_finish",
+    "description": "Verify the complete upload and probe media, then register the asset in shared Undo/Redo. Does not insert a clip. Edit grant required.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "uploadId": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "uploadId"
+          ],
+          "additionalProperties": false
+        },
+        "guard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "runtimeId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "documentToken": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "expectedRevision": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 19
+            }
+          },
+          "required": [
+            "runtimeId",
+            "documentToken",
+            "expectedRevision"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "guard"
+      ]
+    }
+  },
+  {
+    "name": "media_upload_cancel",
+    "description": "Discard only an unfinished owned upload. Imported files remain available for Undo/Redo. Edit grant required.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "uploadId": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "uploadId"
+          ],
+          "additionalProperties": false
+        },
+        "guard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "runtimeId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "documentToken": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "expectedRevision": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 19
+            }
+          },
+          "required": [
+            "runtimeId",
+            "documentToken",
+            "expectedRevision"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "guard"
+      ]
+    }
+  }
+]

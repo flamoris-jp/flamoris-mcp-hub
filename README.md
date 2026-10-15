@@ -478,6 +478,11 @@ Deployment to a live Hub and physical Windows UI acceptance are separate from so
 integration. No production secrets or deployment-specific paths are supplied here.
 
 
+Kachinco media import uses four bounded, guarded upload tools over the same
+desktop connection. See [additive catalog rollout](docs/KACHINCO_UPLOAD.md) and
+the inactive `_kachinco-media-upload.example.yaml`; preserve the existing editor
+catalog when adding these tools.
+
 ## Generation catalog rollout
 
 The matching Generation catalog contains 25 tools. Removed `workflows.register/verify`
