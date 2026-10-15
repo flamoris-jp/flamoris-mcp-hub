@@ -44,7 +44,8 @@ async def test_uploaded_image_contract_and_opaque_forwarding(
         }
     schema = exported["inputs.upload.write"]["input_schema"]["properties"]
     assert schema["data_base64"]["maxLength"] == 349528
-    assert "audio/wav" in exported["inputs.upload.begin"]["input_schema"]["properties"]["mime_type"]["enum"]
+    begin_schema = exported["inputs.upload.begin"]["input_schema"]["properties"]
+    assert "audio/wav" in begin_schema["mime_type"]["enum"]
     assert (
         exported["inputs.upload.begin"]["input_schema"]["properties"]["size_bytes"]["maximum"]
         == 8 * 1024**2
