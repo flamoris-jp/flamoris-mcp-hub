@@ -1,0 +1,112 @@
+[
+  {
+    "name": "title_image_from_frame",
+    "description": "Capture a full composited sequence frame as an immutable PNG asset and select it as title image. Shared Undo/Redo. Does not reserve the first frame automatically.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "sequenceId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "timeTicks": {
+              "type": "string",
+              "pattern": "^-?[0-9]+$",
+              "description": "Signed Int64 decimal string; range checked by the typed decoder."
+            }
+          },
+          "required": [
+            "sequenceId",
+            "timeTicks"
+          ],
+          "additionalProperties": false
+        },
+        "guard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "runtimeId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "documentToken": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "expectedRevision": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 19
+            }
+          },
+          "required": [
+            "runtimeId",
+            "documentToken",
+            "expectedRevision"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "guard"
+      ]
+    }
+  },
+  {
+    "name": "title_image",
+    "description": "Read/export the selected title image as a standalone JPEG (maximum 1920 wide, 1 MiB). Does not seek or change the project; use SetTitleImage through edit_batch to select an uploaded image.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "sequenceId": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "sequenceId"
+          ],
+          "additionalProperties": false
+        },
+        "guard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "runtimeId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "documentToken": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "expectedRevision": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 19
+            }
+          },
+          "required": [
+            "runtimeId",
+            "documentToken"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input"
+      ]
+    }
+  }
+]

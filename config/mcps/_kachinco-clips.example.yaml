@@ -425,6 +425,50 @@
                           "type": "string",
                           "format": "uuid"
                         },
+                        "outgoingClipId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "incomingClipId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "durationTicks": {
+                          "type": "string",
+                          "pattern": "^-?[0-9]+$",
+                          "description": "Signed Int64 decimal string; range checked by the typed decoder."
+                        },
+                        "startPointId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "endPointId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "ApplyCrossfade"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "sequenceId",
+                        "outgoingClipId",
+                        "incomingClipId",
+                        "durationTicks",
+                        "startPointId",
+                        "endPointId"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "sequenceId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
                         "name": {
                           "type": "string"
                         },
@@ -797,6 +841,24 @@
                           "type": "string",
                           "format": "uuid"
                         },
+                        "type": {
+                          "type": "string",
+                          "const": "ReleaseTitleFrame"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "sequenceId"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "sequenceId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
                         "trackId": {
                           "type": "string",
                           "format": "uuid"
@@ -816,6 +878,34 @@
                         "sequenceId",
                         "trackId",
                         "newIndex"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "sequenceId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "trackId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "clipId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "ReserveTitleFrame"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "sequenceId",
+                        "trackId",
+                        "clipId"
                       ],
                       "additionalProperties": false
                     },
@@ -1086,6 +1176,57 @@
                           "type": "string",
                           "format": "uuid"
                         },
+                        "selection": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "mediaAssetId": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "sourceFrameTicks": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^-?[0-9]+$",
+                                      "description": "Signed Int64 decimal string; range checked by the typed decoder."
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "mediaAssetId"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "SetTitleImage"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "sequenceId",
+                        "selection"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "sequenceId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
                         "trackId": {
                           "type": "string",
                           "format": "uuid"
@@ -1178,6 +1319,24 @@
                         "startTicks",
                         "sourceInTicks",
                         "durationTicks"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "mediaAssetId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "UnregisterMedia"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "mediaAssetId"
                       ],
                       "additionalProperties": false
                     },
