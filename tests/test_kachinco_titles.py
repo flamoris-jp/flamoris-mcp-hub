@@ -7,10 +7,10 @@ from pathlib import Path
 
 import pytest
 import yaml
+from test_reverse import Socket
 
 from flamoris_mcp_hub.config import Catalog, UpstreamConfig
 from flamoris_mcp_hub.reverse import ReverseConnection
-from test_reverse import Socket
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = json.loads((ROOT / "tests/fixtures/kachinco-title-tools.json").read_text())
@@ -84,9 +84,7 @@ async def test_readonly_export_forwards_image_and_rejects_capture():
             "content": [{"type": "image", "data": encoded, "mimeType": "image/jpeg"}],
             "isError": False,
         }
-        await socket.incoming.put(
-            {"type": "result", "id": request["id"], "result": result}
-        )
+        await socket.incoming.put({"type": "result", "id": request["id"], "result": result})
         reply = await pending
         assert not reply.is_error
         assert reply.content[0].data == encoded
