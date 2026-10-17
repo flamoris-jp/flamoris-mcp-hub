@@ -25,9 +25,7 @@ def config():
 def registration(permission="readOnly"):
     tools = config().tools
     if permission == "readOnly":
-        tools = [
-            t for t in tools if t.name not in ("edit_batch", "title_image_from_frame")
-        ]
+        tools = [t for t in tools if t.name not in ("edit_batch", "title_image_from_frame")]
     return {
         "type": "register",
         "version": 1,
