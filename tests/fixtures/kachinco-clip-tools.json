@@ -41,12 +41,12 @@
                           },
                           "startTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "durationTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "text": {
@@ -96,12 +96,12 @@
                           },
                           "startTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "durationTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "geometry": {
@@ -224,7 +224,7 @@
                           },
                           "tick": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "value": {
@@ -272,7 +272,7 @@
                           },
                           "tick": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "multiplier": {
@@ -403,6 +403,50 @@
                         "type": "string",
                         "format": "uuid"
                       },
+                      "outgoingClipId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "incomingClipId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "durationTicks": {
+                        "type": "string",
+                        "pattern": "^-?[0-9]+$",
+                        "description": "Signed Int64 decimal string; range checked by the typed decoder."
+                      },
+                      "startPointId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "endPointId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "ApplyCrossfade"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "sequenceId",
+                      "outgoingClipId",
+                      "incomingClipId",
+                      "durationTicks",
+                      "startPointId",
+                      "endPointId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sequenceId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
                       "name": {
                         "type": "string"
                       },
@@ -449,7 +493,7 @@
                       },
                       "durationTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]\u002B$",
+                        "pattern": "^-?[0-9]+$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "type": {
@@ -627,17 +671,17 @@
                           },
                           "startTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "sourceInTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "durationTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "enabled": {
@@ -751,7 +795,7 @@
                       },
                       "startTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]\u002B$",
+                        "pattern": "^-?[0-9]+$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "type": {
@@ -765,6 +809,24 @@
                       "clipId",
                       "targetTrackId",
                       "startTicks"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sequenceId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "ReleaseTitleFrame"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "sequenceId"
                     ],
                     "additionalProperties": false
                   },
@@ -794,6 +856,34 @@
                       "sequenceId",
                       "trackId",
                       "newIndex"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sequenceId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "trackId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "clipId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "ReserveTitleFrame"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "sequenceId",
+                      "trackId",
+                      "clipId"
                     ],
                     "additionalProperties": false
                   },
@@ -963,7 +1053,7 @@
                                 },
                                 "tick": {
                                   "type": "string",
-                                  "pattern": "^-?[0-9]\u002B$",
+                                  "pattern": "^-?[0-9]+$",
                                   "description": "Signed Int64 decimal string; range checked by the typed decoder."
                                 },
                                 "value": {
@@ -1042,7 +1132,7 @@
                       },
                       "durationTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]\u002B$",
+                        "pattern": "^-?[0-9]+$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "type": {
@@ -1054,6 +1144,57 @@
                       "type",
                       "sequenceId",
                       "durationTicks"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sequenceId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "selection": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "mediaAssetId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "sourceFrameTicks": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^-?[0-9]+$",
+                                    "description": "Signed Int64 decimal string; range checked by the typed decoder."
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "mediaAssetId"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "SetTitleImage"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "sequenceId",
+                      "selection"
                     ],
                     "additionalProperties": false
                   },
@@ -1097,7 +1238,7 @@
                       },
                       "splitTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]\u002B$",
+                        "pattern": "^-?[0-9]+$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "rightClipId": {
@@ -1131,17 +1272,17 @@
                       },
                       "startTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]\u002B$",
+                        "pattern": "^-?[0-9]+$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "sourceInTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]\u002B$",
+                        "pattern": "^-?[0-9]+$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "durationTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]\u002B$",
+                        "pattern": "^-?[0-9]+$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "type": {
@@ -1162,6 +1303,24 @@
                   {
                     "type": "object",
                     "properties": {
+                      "mediaAssetId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "UnregisterMedia"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "mediaAssetId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
                       "sequenceId": {
                         "type": "string",
                         "format": "uuid"
@@ -1172,12 +1331,12 @@
                       },
                       "startTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]\u002B$",
+                        "pattern": "^-?[0-9]+$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "durationTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]\u002B$",
+                        "pattern": "^-?[0-9]+$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "text": {
@@ -1221,12 +1380,12 @@
                           },
                           "startTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "durationTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "geometry": {
@@ -1349,7 +1508,7 @@
                           },
                           "tick": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "value": {
@@ -1397,7 +1556,7 @@
                           },
                           "tick": {
                             "type": "string",
-                            "pattern": "^-?[0-9]\u002B$",
+                            "pattern": "^-?[0-9]+$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "multiplier": {
@@ -1543,14 +1702,14 @@
             },
             "startTicks": {
               "type": "string",
-              "pattern": "^-?[0-9]\u002B$",
+              "pattern": "^-?[0-9]+$",
               "description": "Signed Int64 decimal string; range checked by the typed decoder."
             },
             "durationTicks": {
               "anyOf": [
                 {
                   "type": "string",
-                  "pattern": "^-?[0-9]\u002B$",
+                  "pattern": "^-?[0-9]+$",
                   "description": "Signed Int64 decimal string; range checked by the typed decoder."
                 },
                 {
@@ -1674,7 +1833,7 @@
             },
             "offset": {
               "type": "string",
-              "pattern": "^-?[0-9]\u002B$",
+              "pattern": "^-?[0-9]+$",
               "description": "Signed Int64 decimal string; range checked by the typed decoder."
             },
             "count": {
