@@ -90,7 +90,7 @@ async def test_readonly_export_forwards_image_and_rejects_capture():
         reply = await pending
         assert not reply.is_error
         assert reply.content[0].data == encoded
-        assert reply.content[0].mimeType == "image/jpeg"
+        assert reply.content[0].mime_type == "image/jpeg"
     finally:
         await socket.close(1000)
         await serving
