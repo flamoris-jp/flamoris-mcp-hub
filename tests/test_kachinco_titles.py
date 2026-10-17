@@ -25,10 +25,16 @@ def config():
 def registration(permission="readOnly"):
     tools = config().tools
     if permission == "readOnly":
-        tools = [t for t in tools if t.name not in ("edit_batch", "title_image_from_frame")]
+        tools = [
+            t for t in tools if t.name not in ("edit_batch", "title_image_from_frame")
+        ]
     return {
-        "type": "register", "version": 1, "productId": "flamoris.kachinco",
-        "runtimeId": "runtime", "documentToken": "document", "permission": permission,
+        "type": "register",
+        "version": 1,
+        "productId": "flamoris.kachinco",
+        "runtimeId": "runtime",
+        "documentToken": "document",
+        "permission": permission,
         "tools": [{"name": t.name, "inputSchema": t.input_schema} for t in tools],
     }
 
@@ -37,16 +43,26 @@ def test_creation_catalog_matches_pinned_producer_and_clip_edit_schema():
     current = config()
     assert [
         {"name": t.name, "description": t.description, "inputSchema": t.input_schema}
-        for t in current.tools if t.name.startswith("title_image")
+        for t in current.tools
+        if t.name.startswith("title_image")
     ] == FIXTURE
     assert len(Catalog([current]).tools) == 4
     clip = json.loads((ROOT / "tests/fixtures/kachinco-clip-tools.json").read_text())
     assert current.tools[1].input_schema == clip[0]["inputSchema"]
-    commands = current.tools[1].input_schema["properties"]["input"]["properties"]["commands"]["items"]["oneOf"]
+    inputs = current.tools[1].input_schema["properties"]["input"]["properties"]
+    commands = inputs["commands"]["items"]["oneOf"]
     names = {c["properties"]["type"]["const"] for c in commands}
-    assert {"UnregisterMedia", "SetTitleImage", "ReserveTitleFrame", "ReleaseTitleFrame", "ApplyCrossfade"} <= names
+    expected = {
+        "UnregisterMedia",
+        "SetTitleImage",
+        "ReserveTitleFrame",
+        "ReleaseTitleFrame",
+        "ApplyCrossfade",
+    }
+    assert expected <= names
     assert FIXTURE[0]["inputSchema"]["required"] == ["input", "guard"]
-    assert "expectedRevision" in FIXTURE[0]["inputSchema"]["properties"]["guard"]["required"]
+    guard = FIXTURE[0]["inputSchema"]["properties"]["guard"]
+    assert "expectedRevision" in guard["required"]
 
 
 async def test_readonly_export_forwards_image_and_rejects_capture():
@@ -64,11 +80,17 @@ async def test_readonly_export_forwards_image_and_rejects_capture():
         request = await socket.outgoing.get()
         assert request["name"] == "title_image" and request["arguments"] == args
         encoded = base64.b64encode(b"producer-owned-image").decode()
-        result = {"content": [{"type": "image", "data": encoded, "mimeType": "image/jpeg"}], "isError": False}
-        await socket.incoming.put({"type": "result", "id": request["id"], "result": result})
+        result = {
+            "content": [{"type": "image", "data": encoded, "mimeType": "image/jpeg"}],
+            "isError": False,
+        }
+        await socket.incoming.put(
+            {"type": "result", "id": request["id"], "result": result}
+        )
         reply = await pending
         assert not reply.is_error
-        assert reply.content[0].data == encoded and reply.content[0].mimeType == "image/jpeg"
+        assert reply.content[0].data == encoded
+        assert reply.content[0].mimeType == "image/jpeg"
     finally:
         await socket.close(1000)
         await serving
