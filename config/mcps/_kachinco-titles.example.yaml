@@ -841,6 +841,181 @@
                           "type": "string",
                           "format": "uuid"
                         },
+                        "captionIds": {
+                          "type": "array",
+                          "maxItems": 4096,
+                          "items": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "patch": {
+                          "type": "object",
+                          "properties": {
+                            "fontFamily": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "fontSize": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "color": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "outlineColor": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "outlineWidth": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "x": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "y": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "maxWidth": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "alignment": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "verticalAnchor": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "shadowEnabled": {
+                              "anyOf": [
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "shadowColor": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "shadowX": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "shadowY": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [],
+                          "additionalProperties": false
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "PatchCaptionStyles"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "sequenceId",
+                        "captionIds",
+                        "patch"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "sequenceId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
                         "type": {
                           "type": "string",
                           "const": "ReleaseTitleFrame"
@@ -941,6 +1116,86 @@
                         "sequenceId",
                         "clipId",
                         "beforeClipId"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "sequenceId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "captionId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "style": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "fontFamily": {
+                                  "type": "string"
+                                },
+                                "fontSize": {
+                                  "type": "number"
+                                },
+                                "color": {
+                                  "type": "string"
+                                },
+                                "outlineColor": {
+                                  "type": "string"
+                                },
+                                "outlineWidth": {
+                                  "type": "number"
+                                },
+                                "x": {
+                                  "type": "number"
+                                },
+                                "y": {
+                                  "type": "number"
+                                },
+                                "maxWidth": {
+                                  "type": "number"
+                                },
+                                "alignment": {
+                                  "type": "string"
+                                },
+                                "verticalAnchor": {
+                                  "type": "string"
+                                },
+                                "shadowEnabled": {
+                                  "type": "boolean"
+                                },
+                                "shadowColor": {
+                                  "type": "string"
+                                },
+                                "shadowX": {
+                                  "type": "number"
+                                },
+                                "shadowY": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "SetCaptionStyle"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "sequenceId",
+                        "captionId",
+                        "style"
                       ],
                       "additionalProperties": false
                     },

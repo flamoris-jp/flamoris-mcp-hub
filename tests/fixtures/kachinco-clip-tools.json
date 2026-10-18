@@ -41,12 +41,12 @@
                           },
                           "startTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "durationTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "text": {
@@ -96,12 +96,12 @@
                           },
                           "startTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "durationTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "geometry": {
@@ -224,7 +224,7 @@
                           },
                           "tick": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "value": {
@@ -272,7 +272,7 @@
                           },
                           "tick": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "multiplier": {
@@ -413,7 +413,7 @@
                       },
                       "durationTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "startPointId": {
@@ -493,7 +493,7 @@
                       },
                       "durationTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "type": {
@@ -671,17 +671,17 @@
                           },
                           "startTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "sourceInTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "durationTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "enabled": {
@@ -795,7 +795,7 @@
                       },
                       "startTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "type": {
@@ -809,6 +809,181 @@
                       "clipId",
                       "targetTrackId",
                       "startTicks"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sequenceId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "captionIds": {
+                        "type": "array",
+                        "maxItems": 4096,
+                        "items": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "patch": {
+                        "type": "object",
+                        "properties": {
+                          "fontFamily": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "fontSize": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "color": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "outlineColor": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "outlineWidth": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "x": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "y": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "maxWidth": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "alignment": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "verticalAnchor": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shadowEnabled": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shadowColor": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shadowX": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shadowY": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "PatchCaptionStyles"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "sequenceId",
+                      "captionIds",
+                      "patch"
                     ],
                     "additionalProperties": false
                   },
@@ -919,6 +1094,86 @@
                       "sequenceId",
                       "clipId",
                       "beforeClipId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sequenceId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "captionId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "style": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "fontFamily": {
+                                "type": "string"
+                              },
+                              "fontSize": {
+                                "type": "number"
+                              },
+                              "color": {
+                                "type": "string"
+                              },
+                              "outlineColor": {
+                                "type": "string"
+                              },
+                              "outlineWidth": {
+                                "type": "number"
+                              },
+                              "x": {
+                                "type": "number"
+                              },
+                              "y": {
+                                "type": "number"
+                              },
+                              "maxWidth": {
+                                "type": "number"
+                              },
+                              "alignment": {
+                                "type": "string"
+                              },
+                              "verticalAnchor": {
+                                "type": "string"
+                              },
+                              "shadowEnabled": {
+                                "type": "boolean"
+                              },
+                              "shadowColor": {
+                                "type": "string"
+                              },
+                              "shadowX": {
+                                "type": "number"
+                              },
+                              "shadowY": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "SetCaptionStyle"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "sequenceId",
+                      "captionId",
+                      "style"
                     ],
                     "additionalProperties": false
                   },
@@ -1053,7 +1308,7 @@
                                 },
                                 "tick": {
                                   "type": "string",
-                                  "pattern": "^-?[0-9]+$",
+                                  "pattern": "^-?[0-9]\u002B$",
                                   "description": "Signed Int64 decimal string; range checked by the typed decoder."
                                 },
                                 "value": {
@@ -1132,7 +1387,7 @@
                       },
                       "durationTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "type": {
@@ -1167,7 +1422,7 @@
                                 "anyOf": [
                                   {
                                     "type": "string",
-                                    "pattern": "^-?[0-9]+$",
+                                    "pattern": "^-?[0-9]\u002B$",
                                     "description": "Signed Int64 decimal string; range checked by the typed decoder."
                                   },
                                   {
@@ -1238,7 +1493,7 @@
                       },
                       "splitTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "rightClipId": {
@@ -1272,17 +1527,17 @@
                       },
                       "startTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "sourceInTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "durationTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "type": {
@@ -1331,12 +1586,12 @@
                       },
                       "startTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "durationTicks": {
                         "type": "string",
-                        "pattern": "^-?[0-9]+$",
+                        "pattern": "^-?[0-9]\u002B$",
                         "description": "Signed Int64 decimal string; range checked by the typed decoder."
                       },
                       "text": {
@@ -1380,12 +1635,12 @@
                           },
                           "startTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "durationTicks": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "geometry": {
@@ -1508,7 +1763,7 @@
                           },
                           "tick": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "value": {
@@ -1556,7 +1811,7 @@
                           },
                           "tick": {
                             "type": "string",
-                            "pattern": "^-?[0-9]+$",
+                            "pattern": "^-?[0-9]\u002B$",
                             "description": "Signed Int64 decimal string; range checked by the typed decoder."
                           },
                           "multiplier": {
@@ -1702,14 +1957,14 @@
             },
             "startTicks": {
               "type": "string",
-              "pattern": "^-?[0-9]+$",
+              "pattern": "^-?[0-9]\u002B$",
               "description": "Signed Int64 decimal string; range checked by the typed decoder."
             },
             "durationTicks": {
               "anyOf": [
                 {
                   "type": "string",
-                  "pattern": "^-?[0-9]+$",
+                  "pattern": "^-?[0-9]\u002B$",
                   "description": "Signed Int64 decimal string; range checked by the typed decoder."
                 },
                 {
@@ -1833,7 +2088,7 @@
             },
             "offset": {
               "type": "string",
-              "pattern": "^-?[0-9]+$",
+              "pattern": "^-?[0-9]\u002B$",
               "description": "Signed Int64 decimal string; range checked by the typed decoder."
             },
             "count": {
