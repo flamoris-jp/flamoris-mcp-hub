@@ -13,7 +13,7 @@ class CaptionStyleCatalogTests(unittest.TestCase):
         producer = next(t for t in fixture if t["name"] == "edit_batch")
         for name in ("_kachinco-clips.example.yaml", "_kachinco-titles.example.yaml"):
             text = (ROOT / "config/mcps" / name).read_text()
-            catalog = json.loads(text[text.index("{"):])
+            catalog = json.loads(text[text.index("{") :])
             edit = next(t for t in catalog["tools"] if t["name"] == "edit_batch")
             self.assertNotIn("inputSchema", edit)
             self.assertEqual(edit["input_schema"], producer["inputSchema"])
@@ -23,8 +23,11 @@ class CaptionStyleCatalogTests(unittest.TestCase):
             commands = schema["properties"]["input"]["properties"]["commands"]["items"]["oneOf"]
             commands = {c["properties"]["type"]["const"]: c for c in commands}
             expected = {
-                "PatchCaptionStyles", "SetCaptionStyle", "SetClipSpeed",
-                "ReserveTitleFrame", "ApplyCrossfade",
+                "PatchCaptionStyles",
+                "SetCaptionStyle",
+                "SetClipSpeed",
+                "ReserveTitleFrame",
+                "ApplyCrossfade",
             }
             self.assertTrue(expected <= commands.keys())
             patch = commands["PatchCaptionStyles"]["properties"]
