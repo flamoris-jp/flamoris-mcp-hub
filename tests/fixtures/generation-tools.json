@@ -124,6 +124,19 @@
           "additionalProperties": true,
           "title": "Graph",
           "type": "object"
+        },
+        "declaration": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Declaration"
         }
       },
       "required": [

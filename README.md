@@ -1,5 +1,7 @@
 # FLAMORIS MCP Hub
 
+Controller #26 adds [declarative image ComfyWorkFlow registration](https://github.com/flamoris-jp/flamoris-generation-controller/blob/main/docs/DECLARED_COMFY.md) with installed-node validation and descriptor-driven Studio Image controls. Prepared source target: Controller / Generation MCP / Studio 1.1.0 plus the matched Hub catalog; live acceptance remains pending.
+
 Single-entry MCP hub for FLAMORIS, aggregating and routing namespaced tools across multiple MCP servers.
 
 FLAMORIS MCP Hub provides one MCP-facing entry point for independently owned FLAMORIS MCP servers.

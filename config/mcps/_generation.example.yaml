@@ -1,5 +1,5 @@
 # Exact Generation catalog; update the deployed catalog in the same maintenance window.
-# Exported from Generation 2fe76c71260d79dde5f3d8fe54c9d8737f6ba552 (25 tools).
+# Exported from Generation e1e9ef7bcb0aae1d6a1b65e53ebf4fcdd68cad97 (25 tools).
 id: generation
 # Optional trusted per-client context; configure matched Generation verifier first.
 # external_provenance_secret_env: GENERATION_PROVENANCE_SECRET
@@ -13,7 +13,7 @@ tools:
     readOnlyHint: false
     destructiveHint: false
     openWorldHint: false
-  description: Register an immutable bounded checkpoint ComfyWorkFlow, including reviewed IPAdapter and prepared-map ControlNet profiles.
+  description: Register an immutable ComfyWorkFlow with an optional declarative image contract validated against installed nodes and operator policy.
   input_schema:
     type: object
     properties:
@@ -24,6 +24,13 @@ tools:
         additionalProperties: true
         title: Graph
         type: object
+      declaration:
+        anyOf:
+        - additionalProperties: true
+          type: object
+        - type: 'null'
+        default: null
+        title: Declaration
     required:
     - name
     - graph

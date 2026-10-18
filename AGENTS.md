@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## 2026-10-18 Controller #26
+
+The explicit user request authorizes source implementation, matched MCP/Studio/Hub integration, tests, documentation and reviewable PRs for declarative image graphs. It supersedes older fixed-topology/model-family restrictions for this slice. Follow the [declaration contract](https://github.com/flamoris-jp/flamoris-generation-controller/blob/main/docs/DECLARED_COMFY.md). Preserve existing profiles/data, single authority, immutable inputs, ownership and unknown/no-replay. Live deployment, inference and merges remain separate.
+
 This repository contains the FLAMORIS MCP Hub.
 
 AI agents and human contributors should treat the Hub as a small external MCP aggregation and routing boundary. Internal Studio, Agent, Runtime and generation-domain callers use non-MCP interfaces. The Hub is not an internal service bus and must not become a second source of truth for upstream applications. Read [AI architecture](https://github.com/flamoris-jp/flamoris-ai/blob/main/docs/ARCHITECTURE.md) and [Hub #36](https://github.com/flamoris-jp/flamoris-mcp-hub/issues/36).
