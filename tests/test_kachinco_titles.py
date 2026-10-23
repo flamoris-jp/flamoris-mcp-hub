@@ -51,6 +51,7 @@ def test_creation_catalog_matches_pinned_producer_and_clip_edit_schema():
     commands = inputs["commands"]["items"]["oneOf"]
     names = {c["properties"]["type"]["const"] for c in commands}
     expected = {
+        "SetTextComposition",
         "UnregisterMedia",
         "SetTitleImage",
         "ReserveTitleFrame",
