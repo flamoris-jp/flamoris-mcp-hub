@@ -44,3 +44,7 @@ Automated Hub tests cover producer schema parity, ReadOnly downloads / Edit deni
 old-schema rejection, offline discovery and actual 128KiB bytes plus errors through
 an official HTTP MCP client and reverse WebSocket. These are boundary tests with a
 controlled desktop peer; live Mango/tunnel acceptance remains separate.
+
+## KineticTypo editable text (Kachinco #111)
+
+The matched producer adds SetTextComposition to edit_batch. It replaces an embedded native text composition through the ordinary revision-checked command/history. No file/host lifecycle grant, renderer or project authority is added to Hub. Replace the existing edit_batch descriptor from the inactive example when adopting the matching Kachinco build; preserve every unrelated tool/connection setting. KineticTypo standalone publishes its own separate product descriptor (flamoris.kinetai) through the standard desktop connection UI. No live catalog/deployment is changed by this source update.

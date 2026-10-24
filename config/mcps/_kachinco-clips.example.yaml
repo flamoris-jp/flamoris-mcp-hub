@@ -1427,6 +1427,28 @@
                     {
                       "type": "object",
                       "properties": {
+                        "mediaAssetId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "textComposition": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "SetTextComposition"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "mediaAssetId",
+                        "textComposition"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
                         "sequenceId": {
                           "type": "string",
                           "format": "uuid"
