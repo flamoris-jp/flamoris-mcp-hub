@@ -50,3 +50,21 @@ def test_text_edit_retains_revision_guard_and_rejects_untyped_payload():
             }
         )
     )
+
+
+def test_script_compiler_is_a_pinned_offline_query_without_edit_authority():
+    producer = json.loads((ROOT / "tests/fixtures/kinetai-script-tools.json").read_text())[0]
+    config = UpstreamConfig.model_validate(
+        yaml.safe_load((ROOT / "config/mcps/_kinetai-script.example.yaml").read_text())
+    )
+    tool = next(t for t in config.tools if t.name == "compile_script")
+    assert config.product_id == "flamoris.kinetai"
+    assert tool.input_schema == producer["inputSchema"]
+    assert tool.annotations.read_only_hint is True
+    assert "kinetai.compile_script" in set(Catalog([config]).tools)
+    validator = Draft202012Validator(tool.input_schema)
+    source = "def animate(t, duration, i, n, seed): return {}"
+    assert not list(validator.iter_errors({"input": {"source": source}}))
+    assert list(validator.iter_errors({"input": {"source": "x", "path": "file"}}))
+    assert list(validator.iter_errors({"input": {"source": "x" * 65537}}))
+    assert list(validator.iter_errors({"input": {"source": 123}}))

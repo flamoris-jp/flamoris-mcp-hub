@@ -48,3 +48,19 @@ controlled desktop peer; live Mango/tunnel acceptance remains separate.
 ## KineticTypo editable text (Kachinco #111)
 
 The matched producer adds SetTextComposition to edit_batch. It replaces an embedded native text composition through the ordinary revision-checked command/history. No file/host lifecycle grant, renderer or project authority is added to Hub. Replace the existing edit_batch descriptor from the inactive example when adopting the matching Kachinco build; preserve every unrelated tool/connection setting. KineticTypo standalone publishes its own separate product descriptor (flamoris.kinetai) through the standard desktop connection UI. No live catalog/deployment is changed by this source update.
+
+## KineticTypo programmable scripts (Kachinco #114 / Hub #59)
+
+The companion adds `kinetai.compile_script`, a ReadOnly query compiling bounded
+Python source to native IR; it neither edits nor saves. Source is at most 65536
+characters and returned with the program. Apply both through the existing
+revision-guarded Edit `kinetai.edit_composition` operation. Upstream owns language
+validation, expression evaluation, limits and all history. Hub adds no execution.
+
+The inactive `_kinetai-script.example.yaml` pins the exact upstream query schema.
+When installing the matching companion (applicationVersion 0.2.0), export its
+updated registration through MCP / AI and merge the new tool into the existing
+full kinetai catalog. Preserve the existing five tools, connector token and
+connection settings; do not replace a full catalog with this two-tool example.
+Rediscovery must expose the new tool before a client can call it. No live Hub
+configuration is deployed by this change.

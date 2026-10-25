@@ -1,0 +1,53 @@
+[
+  {
+    "name": "compile_script",
+    "description": "Compile bounded Python animation source to native motion IR without editing or saving. Commit program and source via edit_composition.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source"
+          ],
+          "properties": {
+            "source": {
+              "type": "string",
+              "maxLength": 65536
+            }
+          }
+        },
+        "guard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "runtimeId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "documentToken": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "expectedRevision": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "maxLength": 19
+            }
+          },
+          "required": [
+            "runtimeId",
+            "documentToken"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "input"
+      ]
+    }
+  }
+]
