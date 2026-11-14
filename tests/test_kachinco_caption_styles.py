@@ -13,15 +13,21 @@ class CaptionStyleCatalogTests(unittest.TestCase):
             text = (ROOT / "config/mcps" / name).read_text()
             catalog = json.loads(text[text.index("{") :])
             edit = next(t for t in catalog["tools"] if t["name"] == "edit_batch")
-            commands = edit["input_schema"]["properties"]["input"]["properties"]["commands"]["items"]["oneOf"]
+            commands = edit["input_schema"]["properties"]["input"]["properties"]["commands"][
+                "items"
+            ]["oneOf"]
             by_name = {c["properties"]["type"]["const"]: c for c in commands}
-            self.assertEqual(by_name["AddTrack"]["properties"]["kind"]["enum"],
-                             ["Video", "Audio", "Subtitle", "EditNote"])
+            self.assertEqual(
+                by_name["AddTrack"]["properties"]["kind"]["enum"],
+                ["Video", "Audio", "Subtitle", "EditNote"],
+            )
             self.assertIn("AddCaption", by_name)
             self.assertIn("UpdateCaption", by_name)
             self.assertIn("DeleteCaption", by_name)
             self.assertFalse(by_name["AddCaption"]["additionalProperties"])
-            self.assertIn("expectedRevision", edit["input_schema"]["properties"]["guard"]["required"])
+            self.assertIn(
+                "expectedRevision", edit["input_schema"]["properties"]["guard"]["required"]
+            )
 
     def test_both_existing_catalogs_match_the_complete_producer_edit_schema(self):
         fixture = json.loads((ROOT / "tests/fixtures/kachinco-clip-tools.json").read_text())
