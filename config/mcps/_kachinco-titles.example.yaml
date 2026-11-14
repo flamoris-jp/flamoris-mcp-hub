@@ -401,7 +401,8 @@
                           "enum": [
                             "Video",
                             "Audio",
-                            "Subtitle"
+                            "Subtitle",
+                            "EditNote"
                           ]
                         },
                         "type": {
