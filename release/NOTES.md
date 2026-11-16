@@ -10,6 +10,10 @@ Deploy alongside Files 0.4.3, its exact refreshed binary schemas and sufficient
 proxy request/response limits. Live Work/plugin acceptance is a separate pending
 roundtrip, not implied by this release.
 
+Updater compatibility is declared only from 1.0.2. CI performs an actual upgrade
+from the published predecessor and checks retained runtime environment, catalog
+directory and runtime bindings.
+
 ## Previous release notes
 
 # flamoris-mcp-hub v1.0.2
