@@ -504,3 +504,23 @@ Before filling the form, read [input values and post-install setup](docs/FIRST_S
 See [repository-owned distribution](docs/UPDATER.md) for release 1.0.2, its catalog and post-install configuration. Publication and actual-host acceptance remain separately verified.
 
 Kachinco speed and single-clip download catalog: [KACHINCO_CLIPS.md](docs/KACHINCO_CLIPS.md).
+
+
+## Large binary transfers (1.0.3 source)
+
+The MCP HTTP listener accepts request bodies up to 16 MiB. A 10 MiB binary block
+becomes approximately 13.34 MiB of base64 before its JSON-RPC envelope. Tool calls
+use the standard MCP JSON-response mode, so a large binary read does not depend
+on a client's commonly smaller SSE event bound; GET/SSE notifications remain
+available. An upstream read result can contain the same block as both text and
+structured content, producing an approximately 27 MiB JSON response. The Hub
+continues to forward the upstream result unchanged and never owns file state.
+Desktop WebSocket limits remain independent and unchanged.
+
+For Files, deploy the matching 0.4.3 release and refresh its two existing binary
+schemas from the installed server. The method count remains 23 per Files
+namespace. Coordinate proxy request-body limits (at least 16 MiB), then refresh
+client discovery. Auth, Host/Origin protection, lazy upstream connections and
+no-replay behavior are unchanged. This source change does not establish that an
+external Work/plugin intermediary accepts the larger payload; a deployed
+end-to-end roundtrip is still required.
