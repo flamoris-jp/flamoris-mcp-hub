@@ -1,15 +1,15 @@
-# Repository-owned Updater release 1.0.2
+# Repository-owned Updater release 1.0.3
 
 インストールを始める前に、[入力値の用途・取得元・自動生成と導入後の設定](FIRST_SETUP.md)を確認してください。Updaterの項目名だけで値を推測せず、このアプリの手順に沿って進めます。
 
 このリポジトリがソース・ビルド・Release・配布物・インストールカタログを管理します。Updaterは配布物を集め直さず、カタログに記載したこのリポジトリのReleaseから、選択したアプリとCPU向けのファイルだけを取得します。
 
 公開成功後のカタログURL：
-`https://github.com/flamoris-jp/flamoris-mcp-hub/releases/download/v1.0.2/catalog.json`
+`https://github.com/flamoris-jp/flamoris-mcp-hub/releases/download/v1.0.3/catalog.json`
 
 `.github/workflows/publish-updater-release.yml` はこのアプリだけをamd64/arm64でビルドし、固定image IDまたは完全なoffline wheelhouse、ファイルのSHA-256、設定と起動方法をカタログへ記録します。`release/install-recipe.json` がアプリ所有のインストール定義です。公開前にUpdater自身の型と実際のprofile展開処理で検証します。検証用のUpdater依存はCIツール環境だけに入れ、アプリのランタイムへは追加しません。
 
-Release/tagが存在する場合は上書きしません。以前の集中配布と別のパッチ版で、URL・バイト列・カタログ内容の衝突を避けます。`compatible_from` は空で、新規導入向けです。DB/データの移行を確認していない旧版への更新は宣言しません。
+Release/tagが存在する場合は上書きしません。以前の集中配布と別のパッチ版で、URL・バイト列・カタログ内容の衝突を避けます。`compatible_from` は1.0.2のみを宣言します。CIで公開済み1.0.2から実際のUpdaterを通した更新を検証し、runtime.env・mcps directory・mount/network/port設定の保持を確認します。他の旧配置の取り込みやDB移行は宣言しません。
 
 空のmcpsフォルダでも起動します。必要なupstreamカタログと接続情報は初回設定で配置します。接続は遅延開始で、他のアプリの導入順序を強制しません。
 

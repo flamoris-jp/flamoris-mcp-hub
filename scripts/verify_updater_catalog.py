@@ -16,8 +16,9 @@ def command(*args):
     return subprocess.check_output(args, stderr=subprocess.STDOUT, timeout=60).decode().strip()
 
 
-def verify(catalog_path, install):
+def verify(catalog_path, install, upgrade_from=None):
     catalog = Catalog.model_validate_json(catalog_path.read_bytes())
+    legacy = Catalog.model_validate_json(upgrade_from.read_bytes()) if upgrade_from else None
     if install and (os.geteuid() != 0 or os.environ.get("GITHUB_ACTIONS") != "true"):
         raise SystemExit("Actual installation is restricted to a disposable root CI runner")
     for recipe in catalog.recipes:
@@ -25,11 +26,19 @@ def verify(catalog_path, install):
             root = Path(temporary)
             root.chmod(0o700)
             manager = Manager(root / "state", root / "apps")
-            manager.catalog = lambda refresh=False: catalog
-            manager.accept_catalog(catalog)
+            accepted = (
+                catalog.model_copy(update={"recipes": [*legacy.recipes, *catalog.recipes]})
+                if legacy
+                else catalog
+            )
+            manager.catalog = lambda refresh=False, snapshot=accepted: snapshot
+            manager.accept_catalog(accepted)
 
             def local_download(url, limit, destination, expected):
-                source = catalog_path.parent / url.rsplit("/", 1)[1]
+                directory = catalog_path.parent
+                if legacy and f"/v{legacy.recipes[0].release}/" in url:
+                    directory = upgrade_from.parent
+                source = directory / url.rsplit("/", 1)[1]
                 if source.stat().st_size > limit:
                     raise ValueError("Artifact exceeds its installer limit")
                 with source.open("rb") as stream:
@@ -63,7 +72,7 @@ def verify(catalog_path, install):
                     "install",
                     Start(
                         application_id=recipe.application_id,
-                        release=recipe.release,
+                        release=legacy.recipes[0].release if legacy else recipe.release,
                         request_key="repository-release-verification",
                         settings=values,
                     ),
@@ -78,10 +87,46 @@ def verify(catalog_path, install):
                         raise ValueError("Installer failed: " + stored.get("error", "unknown"))
                     installed = manager.journal.get("managed_app", recipe.application_id)
                     cfg = manager._profile(recipe, "cleanup-profile")
-                    assert installed["release"] == recipe.release
+                    assert installed["release"] == (
+                        legacy.recipes[0].release if legacy else recipe.release
+                    )
                     manager.start_setup(recipe.application_id)
                     result = manager.complete(recipe.application_id)
                     assert result["phase"] == "succeeded"
+                    if legacy:
+                        application = root / "apps" / recipe.application_id
+                        environment = application / "config/runtime.env"
+                        before = environment.read_bytes()
+                        marker = application / "mcps/retained-marker.txt"
+                        marker.write_text("retained catalog directory")
+                        original = manager.journal.get("managed_app", recipe.application_id)[
+                            "profile"
+                        ]
+                        updated = manager.start(
+                            "update",
+                            Start(
+                                application_id=recipe.application_id,
+                                release=recipe.release,
+                                request_key="repository-retained-profile-upgrade",
+                            ),
+                        )
+                        manager.run_job(updated["job_id"])
+                        record = manager.journal.get("managed_job", updated["job_id"])
+                        assert record["phase"] == "succeeded", record.get("error")
+                        current = manager.journal.get("managed_app", recipe.application_id)[
+                            "profile"
+                        ]
+                        for key in (
+                            "mounts",
+                            "directories",
+                            "network",
+                            "ports",
+                            "environment_file",
+                        ):
+                            assert current.get(key) == original.get(key), key
+                        assert current["release"] == recipe.release
+                        assert environment.read_bytes() == before
+                        assert marker.read_text() == "retained catalog directory"
                 assert cfg.applications[0].application_id == recipe.application_id
                 assert cfg.applications[0].release == recipe.release
                 settings = json.loads(
@@ -130,8 +175,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("catalog", type=Path)
     parser.add_argument("--install", action="store_true")
+    parser.add_argument("--upgrade-from", type=Path)
     args = parser.parse_args()
-    verify(args.catalog, args.install)
+    if args.upgrade_from and not args.install:
+        parser.error("--upgrade-from requires --install")
+    verify(args.catalog, args.install, args.upgrade_from)
 
 
 if __name__ == "__main__":

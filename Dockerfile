@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 LABEL org.opencontainers.image.title="flamoris-mcp-hub" \
-    org.opencontainers.image.version="1.0.2"
+    org.opencontainers.image.version="1.0.3"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

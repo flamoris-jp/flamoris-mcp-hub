@@ -34,6 +34,10 @@ from .upstream import UpstreamRegistry
 
 logger = logging.getLogger(__name__)
 
+# A 10 MiB binary block becomes approximately 13.34 MiB of base64, plus
+# the JSON-RPC envelope. Desktop WebSocket limits are independent.
+MCP_REQUEST_BYTES = 16 * 1024**2
+
 HUB_STATUS_TOOL = Tool(
     name="hub.upstreams.list",
     annotations=ToolAnnotations(
@@ -123,7 +127,7 @@ async def on_call_tool(
 
 server = Server(
     "FLAMORIS MCP Hub",
-    version="1.0.2",
+    version="1.0.3",
     lifespan=lifespan,
     on_list_tools=on_list_tools,
     on_call_tool=on_call_tool,
@@ -175,7 +179,7 @@ def create_app(*, host: str = "127.0.0.1", mcp_path: str = "/mcp") -> DesktopGat
 
     runtime_server = Server(
         "FLAMORIS MCP Hub",
-        version="1.0.2",
+        version="1.0.3",
         lifespan=runtime_lifespan,
         on_list_tools=on_list_tools,
         on_call_tool=on_call_tool,
@@ -183,7 +187,14 @@ def create_app(*, host: str = "127.0.0.1", mcp_path: str = "/mcp") -> DesktopGat
     security = transport_security()
     http = BearerAuth(
         runtime_server.streamable_http_app(
-            streamable_http_path=mcp_path, host=host, transport_security=security
+            streamable_http_path=mcp_path,
+            host=host,
+            transport_security=security,
+            max_request_body_size=MCP_REQUEST_BYTES,
+            # Large read results should not depend on a client's SSE event-size
+            # default. JSON responses are part of the standard MCP transport;
+            # GET/SSE notifications remain available.
+            json_response=True,
         ),
         token,
         clients,
